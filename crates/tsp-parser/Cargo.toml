@@ -1,0 +1,17 @@
+[package]
+name = "tsp-parser"
+version = "0.1.0"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+description = "TSP Parser written in Rust."
+documentation = "https://docs.rs/traveling-crab"
+repository = "https://github.com/raoulluque/traveling-crab"
+
+edition = "2024"
+
+authors = ["Raoul Luque <raoulsluque@gmail.com>"]
+keywords = ["tsp", "algorithms", "graphs", "networks"]
+categories = ["parsing"]
+
+[dependencies]
+tsp-core = {workspace = true}
