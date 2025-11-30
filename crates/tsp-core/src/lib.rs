@@ -1,4 +1,4 @@
-struct TSPInstance {
+pub struct TSPInstance {
     metadata: InstanceMetadata,
     /// Flattened distance matrix
     ///
@@ -7,7 +7,16 @@ struct TSPInstance {
     distances: Vec<f32>,
 }
 
-struct InstanceMetadata {
-    name: String,
-    num_nodes: usize,
+impl TSPInstance {
+    pub fn new_from_distances(metadata: InstanceMetadata, distances: Vec<f32>) -> Self {
+        Self {
+            metadata,
+            distances,
+        }
+    }
+}
+
+pub struct InstanceMetadata {
+    pub name: String,
+    pub num_nodes: usize,
 }
