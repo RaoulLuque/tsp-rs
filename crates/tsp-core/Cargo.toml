@@ -12,3 +12,6 @@ edition = "2024"
 authors = ["Raoul Luque <raoulsluque@gmail.com>"]
 keywords = ["tsp", "algorithms", "graphs", "networks"]
 categories = ["algorithms"]
+
+[dependencies]
+typed-builder = "0.23.2"
