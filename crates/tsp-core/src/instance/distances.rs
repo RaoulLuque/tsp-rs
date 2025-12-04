@@ -1,5 +1,5 @@
-struct Symmetric;
-struct Asymmetric;
+pub struct Symmetric;
+pub struct Asymmetric;
 
 mod directionality_seal {
     pub trait Directionality {}

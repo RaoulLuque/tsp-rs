@@ -1,5 +1,5 @@
 use crate::{
-    instance::distances::Distances,
+    instance::distances::{Asymmetric, Distances, Symmetric},
     tsp_lib_spec::{
         DisplayDataType, EdgeDataFormat, EdgeWeightFormat, EdgeWeightType, NodeCoordType,
         ProblemType,
@@ -17,20 +17,33 @@ pub struct TSPInstance<T> {
     distances: Distances<T>,
 }
 
-impl<T> TSPInstance<T> {
-    pub fn new_from_distances(metadata: InstanceMetadata, distances: Vec<f32>) -> Self {
+impl TSPInstance<Symmetric> {
+    pub fn new_symmetric_from_distances(metadata: InstanceMetadata, distances: Vec<u32>) -> Self {
+        let dimension = metadata.dimension;
         Self {
             metadata,
-            distances,
+            distances: Distances::new_symmetric_from_data(distances, dimension),
         }
     }
+}
 
+impl TSPInstance<Asymmetric> {
+    pub fn new_asymmetric_from_distances(metadata: InstanceMetadata, distances: Vec<u32>) -> Self {
+        let dimension = metadata.dimension;
+        Self {
+            metadata,
+            distances: Distances::new_asymmetric_from_data(distances, dimension),
+        }
+    }
+}
+
+impl<T> TSPInstance<T> {
     pub fn metadata(&self) -> &InstanceMetadata {
         &self.metadata
     }
 
-    pub fn distances(&self) -> &Vec<f32> {
-        &self.distances
+    pub fn raw_distances(&self) -> &[u32] {
+        &self.distances.data
     }
 }
 
@@ -38,8 +51,8 @@ pub struct InstanceMetadata {
     pub name: String,
     pub problem_type: ProblemType,
     pub comment: Option<String>,
-    pub dimension: u32,
-    pub capacity: Option<u32>,
+    pub dimension: usize,
+    pub capacity: Option<usize>,
     pub edge_weight_type: EdgeWeightType,
     pub edge_weight_format: Option<EdgeWeightFormat>,
     pub edge_data_format: Option<EdgeDataFormat>,
