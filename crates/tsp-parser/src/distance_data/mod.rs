@@ -5,38 +5,33 @@
 ///
 /// Distance values are required to be non-negative integers. Computations are expected to be
 /// carried out in double precision arithmetic, i.e. `f64` in Rust.
-use std::{
-    fs::File,
-    io::{BufReader, Lines},
-};
-
+use memchr::memchr;
+use memmap2::Mmap;
 use tsp_core::{
-    instance::{
-        InstanceMetadata,
-        distances::{DistancesSymmetric, get_lower_triangle_matrix_entry},
-    },
+    instance::{InstanceMetadata, distances::DistancesSymmetric},
     tsp_lib_spec::TSPDataKeyword,
 };
 
 pub fn parse_data_sections(
-    input: &mut Lines<&[u8]>,
+    mmap: &Mmap,
+    index_in_map: &mut usize,
     data_keyword: TSPDataKeyword,
     metadata: &InstanceMetadata,
 ) -> DistancesSymmetric {
     match data_keyword {
         TSPDataKeyword::NODE_COORD_SECTION => {
-            retrieve_distance_data_from_node_coord_section(input, metadata)
+            retrieve_distance_data_from_node_coord_section(mmap, index_in_map, metadata)
         }
         _ => todo!("Other data sections are not yet implemented"),
     }
 }
 
 fn retrieve_distance_data_from_node_coord_section(
-    input: &mut Lines<&[u8]>,
+    mmap: &Mmap,
+    index_in_map: &mut usize,
     metadata: &InstanceMetadata,
 ) -> DistancesSymmetric {
-    let node_data = retrieve_node_data_from_node_coord_section(input, metadata);
-
+    let node_data = retrieve_node_data_from_node_coord_section(mmap, index_in_map, metadata);
     match metadata.edge_weight_type {
         tsp_core::tsp_lib_spec::EdgeWeightType::EUC_2D => {
             compute_distances_euclidean(node_data, metadata.dimension)
@@ -49,13 +44,20 @@ fn retrieve_distance_data_from_node_coord_section(
 }
 
 fn retrieve_node_data_from_node_coord_section(
-    input: &mut Lines<&[u8]>,
+    mmap: &Mmap,
+    index_in_map: &mut usize,
     metadata: &InstanceMetadata,
 ) -> Vec<(f64, f64)> {
     let mut point_data: Vec<(f64, f64)> = Vec::with_capacity(metadata.dimension);
+    while let Some(index_newline) = memchr(b'\n', &mmap[*index_in_map..]) {
+        let line = unsafe {
+            std::str::from_utf8_unchecked(&mmap[*index_in_map..*index_in_map + index_newline])
+        };
+        // println!("Parsing line: {}", line);
 
-    for line in input {
-        let line = line.expect("Failed to read line from input");
+        // Move the index to the start of the next line (+1 for the newline character)
+        *index_in_map += index_newline + 1;
+
         if line.trim() == "EOF" {
             break;
         }
@@ -89,13 +91,15 @@ fn compute_distances_euclidean(
 ) -> DistancesSymmetric {
     let mut distance_data = vec![0; dimension * dimension];
 
-    for i in 0..dimension {
-        for j in i..dimension {
-            let index = get_lower_triangle_matrix_entry(i, j);
-            let distance = compute_euclidean_distance(&point_data[i], &point_data[j]);
-            distance_data[index] = distance;
-        }
-    }
+    // for i in 0..dimension {
+    //     for j in i..dimension {
+    //         let index = get_lower_triangle_matrix_entry(i, j);
+    //         let distance = compute_euclidean_distance(&point_data[i], &point_data[j]);
+    //         debug_assert!(distance_data.len() > index);
+    //         // Safety: Index is computed to be within bounds of distance_data
+    //         unsafe { *distance_data.get_unchecked_mut(index) = distance };
+    //     }
+    // }
 
     DistancesSymmetric::new_from_data(distance_data, dimension)
 }

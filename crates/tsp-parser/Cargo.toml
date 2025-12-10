@@ -14,6 +14,7 @@ edition.workspace = true
 authors.workspace = true
 
 [dependencies]
+memchr = "2.7.6"
 memmap2 = "0.9.9"
 thiserror = {workspace = true}
 tsp-core = {workspace = true}
@@ -22,5 +23,5 @@ tsp-core = {workspace = true}
 criterion = {workspace = true}
 
 [[bench]]
-name = "parser_bench"
+name = "parse_and_compute_dist"
 harness = false

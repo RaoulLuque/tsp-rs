@@ -1,3 +1,4 @@
+# Parsing and Computing Distances
 Parse "a280.tsp"        time:   [192.75 µs 193.21 µs 193.77 µs]
                         change: [−2.7535% +0.2569% +3.9151%] (p = 0.88 > 0.05)
                         No change in performance detected.
@@ -11,3 +12,21 @@ d18512_parsing/Parse "d18512.tsp"
                         time:   [2.1695 s 2.1733 s 2.1770 s]
                         change: [−4.0210% −2.6731% −1.6241%] (p = 0.00 < 0.05)
                         Performance has improved.
+
+
+# Just parsing
+Parse and compute distances "a280.tsp"
+                        time:   [36.369 µs 36.492 µs 36.633 µs]
+                        change: [−29.881% −27.202% −24.628%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 7 outliers among 100 measurements (7.00%)
+  3 (3.00%) high mild
+  4 (4.00%) high severe
+
+d18512_parsing/Parse and compute distances "d18512.tsp"
+                        time:   [1.4021 ms 1.4107 ms 1.4262 ms]
+                        change: [−38.757% −36.288% −33.059%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 2 outliers among 10 measurements (20.00%)
+  1 (10.00%) high mild
+  1 (10.00%) high severe

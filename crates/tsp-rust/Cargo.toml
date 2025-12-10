@@ -13,4 +13,5 @@ authors.workspace = true
 categories.workspace = true
 
 [dependencies]
-tsp-parser ={workspace = true}
+tsp-core = { workspace = true}
+tsp-parser ={ workspace = true}

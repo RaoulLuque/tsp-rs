@@ -1,10 +1,5 @@
-use std::{
-    fs::File,
-    io::{BufRead, BufReader},
-    path::Path,
-};
-
-use memmap2::{Advice, Mmap, MmapOptions};
+use memmap2::{Advice, Mmap};
+use std::{fs::File, io::BufRead, path::Path};
 use thiserror::Error;
 use tsp_core::instance::TSPSymInstance;
 
@@ -28,11 +23,11 @@ pub fn parse_tsp_instance<P: AsRef<Path>>(instance_path: P) -> Result<TSPSymInst
     // Safety: This is the only point at which we access the file, so the file should not be modified otherwise.
     let mmap = unsafe { Mmap::map(&File::open(instance_path)?)? };
     mmap.advise(Advice::Sequential)?;
-    let mut lines = mmap.lines();
+    let mut index_in_map = 0;
 
-    let (metadata, data_keyword) = parse_metadata(&mut lines)?;
+    let (metadata, data_keyword) = parse_metadata(&mmap, &mut index_in_map)?;
 
-    let data = parse_data_sections(&mut lines, data_keyword, &metadata);
+    let data = parse_data_sections(&mmap, &mut index_in_map, data_keyword, &metadata);
 
     Ok(TSPSymInstance::new_from_distances_sym(data, metadata))
 }

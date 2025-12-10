@@ -3,6 +3,8 @@ use std::{
     io::{BufReader, Lines},
 };
 
+use memchr::memchr;
+use memmap2::Mmap;
 use thiserror::Error;
 use tsp_core::{
     instance::InstanceMetadata,
@@ -51,15 +53,25 @@ pub enum MetaDataParseError {
 /// `TSPDataKeyword`, and a reference to the remaining lines iterator starting from the data section
 /// (the line after the first data keyword).
 pub fn parse_metadata(
-    input: &mut Lines<&[u8]>,
+    mmap: &Mmap,
+    index_in_map: &mut usize,
 ) -> Result<(InstanceMetadata, TSPDataKeyword), ParserError> {
     let mut metadata_builder = InstanceMetadataBuilder::new();
     let data_keyword = loop {
-        let Some(Ok(line)) = input.next() else {
+        let Some(index_newline) = memchr(b'\n', &mmap[*index_in_map..]) else {
             return Err(
                 MetaDataParseError::InvalidInput("Unexpected end of file".to_string()).into(),
             );
         };
+
+        let line = unsafe {
+            std::str::from_utf8_unchecked(&mmap[*index_in_map..*index_in_map + index_newline])
+        };
+        // println!("Parsing line: {}", line);
+
+        // Move the index to the start of the next line (+1 for the newline character)
+        *index_in_map += index_newline + 1;
+
         match parse_specification_or_data_keyword(&line, &mut metadata_builder)? {
             None => {
                 // The specification keyword has been added to the builder inside
