@@ -1,4 +1,4 @@
-# Parsing and Computing Distances
+# --- Parsing and Computing Distances ---
 Parse "a280.tsp"        time:   [192.75 µs 193.21 µs 193.77 µs]
                         change: [−2.7535% +0.2569% +3.9151%] (p = 0.88 > 0.05)
                         No change in performance detected.
@@ -14,18 +14,39 @@ d18512_parsing/Parse "d18512.tsp"
                         Performance has improved.
 
 
-# Just parsing
-Parse and compute distances "a280.tsp"
-                        time:   [30.850 µs 31.020 µs 31.212 µs]
-                        change: [+0.8045% +4.2081% +7.5538%] (p = 0.01 < 0.05)
+# --- Just parsing ---
+
+Parse and compute distances "d198.tsp"
+                        time:   [30.031 µs 30.807 µs 31.555 µs]
+                        change: [−6.6746% −3.9267% −0.8918%] (p = 0.01 < 0.05)
                         Change within noise threshold.
-Found 13 outliers among 100 measurements (13.00%)
+Found 4 outliers among 100 measurements (4.00%)
   2 (2.00%) high mild
-  11 (11.00%) high severe
+  2 (2.00%) high severe
+
+Parse and compute distances "a280.tsp"
+                        time:   [25.877 µs 26.537 µs 27.204 µs]
+                        change: [−25.074% −23.280% −21.504%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 1 outliers among 100 measurements (1.00%)
+  1 (1.00%) high mild
+
+Parse and compute distances "d493.tsp"
+                        time:   [63.249 µs 64.005 µs 64.754 µs]
+                        change: [−4.6767% −2.9615% −1.0198%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high severe
+
+Parse and compute distances "d1291.tsp"
+                        time:   [207.36 µs 208.79 µs 210.26 µs]
+                        change: [−4.9584% −3.2073% −1.3130%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 3 outliers among 100 measurements (3.00%)
+  1 (1.00%) high mild
+  2 (2.00%) high severe
 
 d18512_parsing/Parse and compute distances "d18512.tsp"
-                        time:   [912.16 µs 914.02 µs 915.79 µs]
-                        change: [−2.4759% +0.4485% +3.2109%] (p = 0.79 > 0.05)
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high severe
+                        time:   [713.15 µs 729.60 µs 750.91 µs]
+                        change: [−26.426% −25.196% −23.867%] (p = 0.00 < 0.05)
+                        Performance has improved.
