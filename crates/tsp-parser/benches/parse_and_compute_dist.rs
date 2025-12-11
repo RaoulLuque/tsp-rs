@@ -7,6 +7,24 @@ fn a280_benchmark(c: &mut Criterion) {
     });
 }
 
+fn d198_benchmark(c: &mut Criterion) {
+    c.bench_function("Parse and compute distances \"d198.tsp\"", |b| {
+        b.iter(|| parse_tsp_instance("../../instances/bench/d198.tsp").unwrap())
+    });
+}
+
+fn d493_benchmark(c: &mut Criterion) {
+    c.bench_function("Parse and compute distances \"d493.tsp\"", |b| {
+        b.iter(|| parse_tsp_instance("../../instances/bench/d493.tsp").unwrap())
+    });
+}
+
+fn d1291_benchmark(c: &mut Criterion) {
+    c.bench_function("Parse and compute distances \"d1291.tsp\"", |b| {
+        b.iter(|| parse_tsp_instance("../../instances/bench/d1291.tsp").unwrap())
+    });
+}
+
 fn d18512_benchmark(c: &mut Criterion) {
     let mut group = c.benchmark_group("d18512_parsing");
     group.sample_size(10);
@@ -17,5 +35,8 @@ fn d18512_benchmark(c: &mut Criterion) {
 }
 
 criterion_group!(a280, a280_benchmark);
+criterion_group!(d198, d198_benchmark);
+criterion_group!(d493, d493_benchmark);
+criterion_group!(d1291, d1291_benchmark);
 criterion_group!(d18512, d18512_benchmark);
-criterion_main!(a280, d18512);
+criterion_main!(d198, a280, d493, d1291, d18512);
