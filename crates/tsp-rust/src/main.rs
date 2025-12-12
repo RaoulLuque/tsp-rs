@@ -1,5 +1,5 @@
 fn main() {
-    let tsp_instance = tsp_parser::parse_tsp_instance("instances/bench/d18512.tsp").unwrap();
+    let tsp_instance = tsp_parser::parse_tsp_instance("instances/bench/d198.tsp").unwrap();
     // println!("Parsed TSP instance: {:?}", tsp_instance.raw_distances());
 }
 

@@ -10,7 +10,10 @@ use memmap2::Mmap;
 use tsp_core::{
     instance::{
         InstanceMetadata,
-        distances::{DistancesSymmetric, get_lower_triangle_matrix_entry_column_bigger},
+        distances::{
+            DistancesSymmetric, get_lower_triangle_matrix_entry_column_bigger,
+            get_lower_triangle_matrix_entry_row_bigger,
+        },
     },
     tsp_lib_spec::TSPDataKeyword,
 };
@@ -124,12 +127,13 @@ fn compute_distances_euclidean(
     let mut distance_data = vec![0; dimension * (dimension + 1) / 2];
 
     for i in 0..dimension {
-        for j in i..dimension {
-            let index = get_lower_triangle_matrix_entry_column_bigger(i, j);
+        for j in 0..i {
+            let index = get_lower_triangle_matrix_entry_row_bigger(i, j);
             let distance = compute_euclidean_distance(&point_data[i], &point_data[j]);
             debug_assert!(
                 distance_data.len() > index,
-                "Computed index {} for i: {}, j: {} is out of bounds for distance data of length {}",
+                "Computed index {} for i: {}, j: {} is out of bounds for distance data of length \
+                 {}",
                 index,
                 i,
                 j,
