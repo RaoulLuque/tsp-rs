@@ -179,7 +179,7 @@ fn distances_euclidean_chunk(
     let start_row_point_data = &point_data[start_row];
     // We can omit the column = start_row case, as it is always zero distance
     for column in start_column..start_row {
-        set_distance(
+        compute_and_set_distance(
             chunk,
             start_row,
             column,
@@ -193,7 +193,7 @@ fn distances_euclidean_chunk(
         let row_point_data = &point_data[row];
         // We can omit the column = start_row case, as it is always zero distance
         for column in 0..row {
-            set_distance(
+            compute_and_set_distance(
                 chunk,
                 row,
                 column,
@@ -207,7 +207,7 @@ fn distances_euclidean_chunk(
     let end_row_point_data = &point_data[end_row];
     // We can omit the column = start_row case, as it is always zero distance
     for column in 0..end_column {
-        set_distance(
+        compute_and_set_distance(
             chunk,
             end_row,
             column,
@@ -219,7 +219,8 @@ fn distances_euclidean_chunk(
 }
 
 #[inline(always)]
-fn set_distance(
+#[inline(always)]
+fn compute_and_set_distance(
     chunk: &mut [u32],
     row: usize,
     column: usize,
@@ -227,9 +228,22 @@ fn set_distance(
     row_point_data: &(f64, f64),
     column_point_data: &(f64, f64),
 ) {
+    let distance = compute_euclidean_distance(row_point_data, column_point_data);
+
+    set_distance(chunk, distance, row, column, chunk_start_index);
+}
+
+#[inline(always)]
+fn set_distance(
+    chunk: &mut [u32],
+    distance: u32,
+    row: usize,
+    column: usize,
+    chunk_start_index: usize,
+) {
     let index_in_chunk =
         get_lower_triangle_matrix_entry_row_bigger(row, column) - chunk_start_index;
-    let distance = compute_euclidean_distance(row_point_data, column_point_data);
+
     debug_assert!(
         chunk.len() > index_in_chunk,
         "Computed index {} for i: {}, j: {} is out of bounds for distance data of length {}",
