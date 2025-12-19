@@ -1,14 +1,16 @@
 use std::collections::BinaryHeap;
 
 use tsp_core::instance::{
-    distance::DistanceMatrix,
-    edge::{Edge, WeightedEdge},
+    distance::{DistanceMatrix, DistanceMatrixSymmetric},
+    edge::{InverseWeightedUnEdge, UnEdge},
 };
 
 use crate::CustomBitVec;
 
 /// Compute a minimum 1-tree with given node penalties
-fn min_one_tree() {}
+fn min_one_tree(distances: DistanceMatrixSymmetric, penalties: &[i32]) {
+    // let tree = min_spanning_tree();
+}
 
 /// Compute a minimum spanning tree for given nodes and edges using prim's algorithm.
 /// We assume that the distance matrix is valid, i.e., it models a complete graph.
@@ -16,7 +18,7 @@ fn min_one_tree() {}
 /// Returns a vector of number of nodes - 1 edges representing the minimum spanning tree.
 ///
 /// For more details, see https://en.wikipedia.org/wiki/Prim%27s_algorithm
-fn min_spanning_tree(distance_matrix: impl DistanceMatrix) -> Vec<Edge> {
+fn min_spanning_tree(distance_matrix: &impl DistanceMatrix) -> Vec<UnEdge> {
     // TODO: Check if kruskal's algorithm might be faster
     let number_of_nodes = distance_matrix.dimension();
 
@@ -25,7 +27,8 @@ fn min_spanning_tree(distance_matrix: impl DistanceMatrix) -> Vec<Edge> {
     selected.resize(number_of_nodes, false);
 
     // Min-heap of edges to explore next (actually a max-heap with u32::MAX - cost as weight)
-    let mut next_edges: BinaryHeap<WeightedEdge> = BinaryHeap::with_capacity(number_of_nodes);
+    let mut next_edges: BinaryHeap<InverseWeightedUnEdge> =
+        BinaryHeap::with_capacity(number_of_nodes);
 
     // The resulting tree edges in no particular order
     let mut tree = Vec::with_capacity(number_of_nodes - 1);
@@ -35,11 +38,7 @@ fn min_spanning_tree(distance_matrix: impl DistanceMatrix) -> Vec<Edge> {
 
     for to in 1..number_of_nodes {
         let cost = distance_matrix.get_distance(0, to);
-        next_edges.push(WeightedEdge {
-            cost: convert_weight(cost),
-            from: 0,
-            to,
-        });
+        next_edges.push(InverseWeightedUnEdge { cost, from: 0, to });
     }
 
     for _ in 0..(number_of_nodes - 1) {
@@ -63,8 +62,8 @@ fn min_spanning_tree(distance_matrix: impl DistanceMatrix) -> Vec<Edge> {
                 continue;
             }
             let cost = distance_matrix.get_distance(weighted_edge.to, to);
-            next_edges.push(WeightedEdge {
-                cost: convert_weight(cost),
+            next_edges.push(InverseWeightedUnEdge {
+                cost,
                 from: weighted_edge.to,
                 to,
             });
@@ -74,10 +73,34 @@ fn min_spanning_tree(distance_matrix: impl DistanceMatrix) -> Vec<Edge> {
     tree
 }
 
-/// Convert a weight to use it in a max-heap as if it were a min-heap
-#[inline(always)]
-fn convert_weight(weight: u32) -> u32 {
-    // TODO: Handle adjusted weights using nodes
-    // SAFETY: Overflow is impossible here as u32::MAX >= weight since weight is u32
-    unsafe { u32::MAX.unchecked_sub(weight) }
+#[cfg(test)]
+mod tests {
+    use tsp_core::instance::distance::DistanceMatrixSymmetric;
+
+    use super::*;
+
+    #[test]
+    fn test_min_spanning_tree() {
+        let distance_matrix =
+            DistanceMatrixSymmetric::slow_new_from_distance_function(10, |from, to| {
+                if from + 1 == to || from == to + 1 {
+                    0
+                } else {
+                    1
+                }
+            });
+
+        let mst = min_spanning_tree(&distance_matrix);
+        assert_eq!(mst.len(), 9);
+        let expected = (0..9)
+            .map(|i| UnEdge { from: i, to: i + 1 })
+            .collect::<Vec<_>>();
+        mst.iter().for_each(|edge| {
+            assert!(
+                expected.contains(edge),
+                "Edge {:?} not in expected MST",
+                edge
+            );
+        });
+    }
 }

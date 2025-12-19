@@ -11,24 +11,45 @@ pub struct DistanceMatrixSymmetric {
 
 impl DistanceMatrixSymmetric {
     pub fn new_from_data(distance_data: Vec<u32>, dimension: usize) -> Self {
+        assert_eq!(distance_data.len(), dimension * (dimension + 1) / 2);
         Self {
             data: distance_data,
             dimension,
         }
     }
 
-    pub fn new_from_dimension(dimension: usize) -> Self {
-        let size = (dimension * (dimension - 1)) / 2;
+    pub fn new_from_dimension_with_value(dimension: usize, value: u32) -> Self {
+        let size = (dimension * (dimension + 1)) / 2;
         Self {
-            data: Vec::with_capacity(size),
+            data: vec![value; size],
             dimension,
         }
+    }
+
+    pub fn slow_new_from_distance_function(
+        dimension: usize,
+        mut distance_function: impl FnMut(usize, usize) -> u32,
+    ) -> Self {
+        let mut res = DistanceMatrixSymmetric::new_from_dimension_with_value(dimension, 0);
+        for row in 0..dimension {
+            for column in 0..row {
+                let distance = distance_function(row, column);
+                res.set_distance(row, column, distance);
+            }
+        }
+        res
     }
 
     #[inline(always)]
     pub fn get_distance(&self, from: usize, to: usize) -> u32 {
         let index = get_lower_triangle_matrix_entry(from, to);
         self.data[index]
+    }
+
+    #[inline(always)]
+    pub fn set_distance(&mut self, from: usize, to: usize, distance: u32) {
+        let index = get_lower_triangle_matrix_entry(from, to);
+        self.data[index] = distance;
     }
 
     pub fn restrict_to_first_n<'a>(&'a self, n: usize) -> RestrictedDistanceMatrixSymmetric<'a> {
