@@ -1,10 +1,15 @@
+pub trait DistanceMatrix {
+    fn get_distance(&self, from: usize, to: usize) -> u32;
+    fn dimension(&self) -> usize;
+}
+
 #[derive(Debug, Clone)]
-pub struct DistancesSymmetric {
+pub struct DistanceMatrixSymmetric {
     pub data: Vec<u32>,
     pub dimension: usize,
 }
 
-impl DistancesSymmetric {
+impl DistanceMatrixSymmetric {
     pub fn new_from_data(distance_data: Vec<u32>, dimension: usize) -> Self {
         Self {
             data: distance_data,
@@ -24,6 +29,46 @@ impl DistancesSymmetric {
     pub fn get_distance(&self, from: usize, to: usize) -> u32 {
         let index = get_lower_triangle_matrix_entry(from, to);
         self.data[index]
+    }
+
+    pub fn restrict_to_first_n<'a>(&'a self, n: usize) -> RestrictedDistanceMatrixSymmetric<'a> {
+        RestrictedDistanceMatrixSymmetric {
+            data: &self.data[0..(n * (n - 1)) / 2],
+            dimension: n,
+        }
+    }
+}
+
+impl DistanceMatrix for DistanceMatrixSymmetric {
+    fn get_distance(&self, from: usize, to: usize) -> u32 {
+        self.get_distance(from, to)
+    }
+
+    fn dimension(&self) -> usize {
+        self.dimension
+    }
+}
+
+pub struct RestrictedDistanceMatrixSymmetric<'a> {
+    pub data: &'a [u32],
+    pub dimension: usize,
+}
+
+impl<'a> RestrictedDistanceMatrixSymmetric<'a> {
+    #[inline(always)]
+    pub fn get_distance(&self, from: usize, to: usize) -> u32 {
+        let index = get_lower_triangle_matrix_entry(from, to);
+        self.data[index]
+    }
+}
+
+impl<'a> DistanceMatrix for RestrictedDistanceMatrixSymmetric<'a> {
+    fn get_distance(&self, from: usize, to: usize) -> u32 {
+        self.get_distance(from, to)
+    }
+
+    fn dimension(&self) -> usize {
+        self.dimension
     }
 }
 

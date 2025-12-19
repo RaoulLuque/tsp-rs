@@ -1,5 +1,5 @@
 use crate::{
-    instance::distances::DistancesSymmetric,
+    instance::distances::DistanceMatrixSymmetric,
     tsp_lib_spec::{
         DisplayDataType, EdgeDataFormat, EdgeWeightFormat, EdgeWeightType, NodeCoordType,
         ProblemType,
@@ -15,7 +15,7 @@ pub struct TSPSymInstance {
     ///
     /// Row major order, i.e. distance from node i to node j is at index (i * num_nodes + j).
     /// Node indexing starts at 0.
-    distances: DistancesSymmetric,
+    distances: DistanceMatrixSymmetric,
 }
 
 impl TSPSymInstance {
@@ -23,12 +23,12 @@ impl TSPSymInstance {
         let dimension = metadata.dimension;
         Self {
             metadata,
-            distances: DistancesSymmetric::new_from_data(distance_data, dimension),
+            distances: DistanceMatrixSymmetric::new_from_data(distance_data, dimension),
         }
     }
 
     pub fn new_from_distances_sym(
-        distances: DistancesSymmetric,
+        distances: DistanceMatrixSymmetric,
         metadata: InstanceMetadata,
     ) -> Self {
         Self {

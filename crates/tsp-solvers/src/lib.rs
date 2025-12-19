@@ -1,4 +1,5 @@
-pub mod instance;
+pub mod held_karp;
+pub(crate) mod utils;
 
 #[cfg(test)]
 mod tests {

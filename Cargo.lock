@@ -473,6 +473,9 @@ dependencies = [
 [[package]]
 name = "tsp-solvers"
 version = "0.1.0"
+dependencies = [
+ "tsp-core",
+]
 
 [[package]]
 name = "unicode-ident"

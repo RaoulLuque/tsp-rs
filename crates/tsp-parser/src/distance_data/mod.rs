@@ -10,7 +10,7 @@ use memmap2::Mmap;
 use tsp_core::{
     instance::{
         InstanceMetadata,
-        distances::{DistancesSymmetric, get_lower_triangle_matrix_entry_row_bigger},
+        distances::{DistanceMatrixSymmetric, get_lower_triangle_matrix_entry_row_bigger},
     },
     tsp_lib_spec::TSPDataKeyword,
 };
@@ -23,7 +23,7 @@ pub fn parse_data_sections(
     index_in_map: &mut usize,
     data_keyword: TSPDataKeyword,
     metadata: &InstanceMetadata,
-) -> DistancesSymmetric {
+) -> DistanceMatrixSymmetric {
     match data_keyword {
         TSPDataKeyword::NODE_COORD_SECTION => {
             parse_dist_from_node_coord_section(mmap, index_in_map, metadata)
@@ -36,7 +36,7 @@ fn parse_dist_from_node_coord_section(
     mmap: &Mmap,
     index_in_map: &mut usize,
     metadata: &InstanceMetadata,
-) -> DistancesSymmetric {
+) -> DistanceMatrixSymmetric {
     let node_data = parse_node_coord_section(mmap, index_in_map, metadata);
     match metadata.edge_weight_type {
         tsp_core::tsp_lib_spec::EdgeWeightType::EUC_2D => {
@@ -120,7 +120,7 @@ fn parse_node_coord_section(
     point_data
 }
 
-fn distances_euclidean(point_data: &[(f64, f64)], dimension: usize) -> DistancesSymmetric {
+fn distances_euclidean(point_data: &[(f64, f64)], dimension: usize) -> DistanceMatrixSymmetric {
     let total_size = dimension * (dimension + 1) / 2;
 
     let mut distance_data = vec![0; total_size];
@@ -144,7 +144,7 @@ fn distances_euclidean(point_data: &[(f64, f64)], dimension: usize) -> Distances
         });
     }
 
-    DistancesSymmetric::new_from_data(distance_data, dimension)
+    DistanceMatrixSymmetric::new_from_data(distance_data, dimension)
 }
 
 #[inline(always)]
