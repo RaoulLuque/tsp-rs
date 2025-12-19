@@ -9,7 +9,9 @@ use crate::CustomBitVec;
 
 /// Compute a minimum 1-tree with given node penalties
 fn min_one_tree(distances: DistanceMatrixSymmetric, penalties: &[i32]) {
-    // let tree = min_spanning_tree();
+    let distances_restricted_to_0_to_n_minus_1 =
+        distances.restrict_to_first_n(distances.dimension - 1);
+    let tree = min_spanning_tree(&distances_restricted_to_0_to_n_minus_1);
 }
 
 /// Compute a minimum spanning tree for given nodes and edges using prim's algorithm.
