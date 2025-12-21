@@ -51,10 +51,7 @@ impl<Data: Copy> EdgeDataMatrixSym<Data> {
         self.data[index] = data;
     }
 
-    pub fn restrict_to_first_n<'a>(
-        &'a self,
-        n: usize,
-    ) -> RestrictedDataMatrixSym<'a, Data> {
+    pub fn restrict_to_first_n<'a>(&'a self, n: usize) -> RestrictedDataMatrixSym<'a, Data> {
         RestrictedDataMatrixSym {
             data: &self.data[0..(n * (n - 1)) / 2],
             dimension: n,
@@ -94,11 +91,11 @@ impl<Data: Copy> EdgeDataMatrix<Data> for EdgeDataMatrixSym<Data> {
     }
 
     fn get_data_from_bigger(&self, from: Node, to: Node) -> Data {
-        EdgeDataMatrixSym::get_data_to_bigger(self, from, to)
+        EdgeDataMatrixSym::get_data_from_bigger(self, from, to)
     }
 
     fn get_data_to_bigger(&self, from: Node, to: Node) -> Data {
-        EdgeDataMatrixSym::get_data_from_bigger(self, from, to)
+        EdgeDataMatrixSym::get_data_to_bigger(self, from, to)
     }
 
     fn dimension(&self) -> usize {
