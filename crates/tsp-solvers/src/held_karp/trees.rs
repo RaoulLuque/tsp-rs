@@ -117,7 +117,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_min_spanning_tree() {
+    fn test_min_spanning_tree_simple_tree() {
         let distance_matrix = DistanceMatrixSym::slow_new_from_distance_function(10, |from, to| {
             if from.0 + 1 == to.0 || from.0 == to.0 + 1 {
                 Distance(0)
@@ -139,6 +139,82 @@ mod tests {
                 to: Node(i + 1),
             })
             .collect::<Vec<_>>();
+        mst.iter().for_each(|edge| {
+            assert!(
+                expected.contains(edge),
+                "Edge {:?} not in expected MST",
+                edge
+            );
+        });
+    }
+
+    #[test]
+    fn test_min_spanning_tree_excluded_infeasible() {
+        let distance_matrix = DistanceMatrixSym::new_from_dimension_with_value(10, Distance(0));
+        let penalties = vec![0; 10];
+        let edge_states = EdgeDataMatrixSym {
+            data: vec![EdgeState::Excluded; distance_matrix.data.len()],
+            dimension: distance_matrix.dimension,
+        };
+
+        let mst = min_spanning_tree(&distance_matrix, &edge_states, &penalties);
+        assert_eq!(mst, None);
+    }
+
+    #[test]
+    fn test_min_spanning_tree_infeasible_node_isolated() {
+        let distance_matrix = DistanceMatrixSym::new_from_dimension_with_value(5, Distance(0));
+        let penalties = vec![0; 5];
+        let mut edge_states = Vec::with_capacity(distance_matrix.data.len());
+        for from in 0..5 {
+            for to in 0..=from {
+                if (from == 2) || (to == 2) {
+                    edge_states.push(EdgeState::Excluded);
+                } else if (from + 1 == to) || (to + 1 == from) {
+                    edge_states.push(EdgeState::Fixed);
+                } else {
+                    edge_states.push(EdgeState::Available);
+                }
+            }
+        }
+
+        let edge_states = EdgeDataMatrixSym {
+            data: edge_states,
+            dimension: distance_matrix.dimension,
+        };
+
+        let mst = min_spanning_tree(&distance_matrix, &edge_states, &penalties);
+        assert_eq!(mst, None);
+    }
+
+    #[test]
+    fn test_min_spanning_tree_fixed() {
+        let distance_matrix = DistanceMatrixSym::new_from_dimension_with_value(5, Distance(0));
+        let penalties = vec![0; 5];
+        let mut edge_states = Vec::with_capacity(distance_matrix.data.len());
+        for from in 0..5 {
+            for to in 0..=from {
+                if (from + 1 == to) || (to + 1 == from) {
+                    edge_states.push(EdgeState::Fixed);
+                } else {
+                    edge_states.push(EdgeState::Available);
+                }
+            }
+        }
+
+        let edge_states = EdgeDataMatrixSym {
+            data: edge_states,
+            dimension: distance_matrix.dimension,
+        };
+
+        let mst = min_spanning_tree(&distance_matrix, &edge_states, &penalties).unwrap();
+        let expected = vec![
+            UnEdge::new(Node(0), Node(1)),
+            UnEdge::new(Node(1), Node(2)),
+            UnEdge::new(Node(2), Node(3)),
+            UnEdge::new(Node(3), Node(4)),
+        ];
+        assert_eq!(mst.len(), expected.len());
         mst.iter().for_each(|edge| {
             assert!(
                 expected.contains(edge),
