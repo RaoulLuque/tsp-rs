@@ -126,18 +126,19 @@ fn explore_node(
     scaled_distances: &EdgeDataMatrixSym<ScaledDistance>,
     edge_states: &mut EdgeStateMatrix,
     node_penalties: &mut [ScaledDistance],
+    fixed_degrees: &mut [u32],
     upper_bound: &mut Distance,
     best_tour: &mut Option<UnTour>,
     bb_counter: &mut usize,
     bb_limit: Option<usize>,
     depth: usize,
-) {
+) -> Option<()> {
     // Increment the branch count
     *bb_counter += 1;
 
     if let Some(limit) = bb_limit {
         if *bb_counter >= limit {
-            return;
+            return None;
         }
     }
 
@@ -147,7 +148,7 @@ fn explore_node(
         (MAX_ITERATIONS, BETA)
     };
 
-    let tree = match held_karp_lower_bound(
+    let one_tree = match held_karp_lower_bound(
         distances,
         scaled_distances,
         edge_states,
@@ -160,26 +161,44 @@ fn explore_node(
             // Found a new tour, that is, an upper bound
             *upper_bound = tour.cost;
             *best_tour = Some(tour);
-            return;
+            return None;
         }
         Some(LowerBoundOutput::LowerBound(lower_bound, one_tree)) => {
             // Check if the lower bound is better than the current best cost
             if lower_bound >= *upper_bound {
                 // Prune this node, as we have already found a better tour than the lower bound
-                return;
+                return None;
             } else {
                 one_tree
             }
         }
         None => {
             // Infeasible node, prune
-            return;
+            return None;
         }
     };
 
-    let branching_edge = edge_to_branch_on(scaled_distances, edge_states, node_penalties, &tree);
+    let branching_edge =
+        edge_to_branch_on(scaled_distances, edge_states, node_penalties, &one_tree)?;
 
     // Try exploring the branch excluding the edge
+    {
+        edge_states.set_data(branching_edge.from, branching_edge.to, EdgeState::Excluded);
+
+        explore_node(
+            distances,
+            scaled_distances,
+            edge_states,
+            node_penalties,
+            upper_bound,
+            best_tour,
+            bb_counter,
+            bb_limit,
+            depth + 1,
+        );
+
+        edge_states.set_data(branching_edge.from, branching_edge.to, EdgeState::Available);
+    }
     todo!();
 
     // Try exploring the branch including the edge
