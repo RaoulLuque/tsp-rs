@@ -38,29 +38,35 @@
 //! branch-and-bound search to systematically explore different configurations of the TSP tour
 //! by forcibly including or excluding edges.
 
-use tsp_core::instance::edge::{data::EdgeDataMatrixSym, distance::Distance};
+use std::u32;
 
+use tsp_core::instance::{
+    UnTour,
+    edge::{UnEdge, data::EdgeDataMatrixSym, distance::Distance},
+};
+
+use crate::held_karp::{fixed_point_arithmetic::ScaledDistance, trees::min_one_tree};
+
+mod fixed_point_arithmetic;
 mod trees;
 
-pub fn held_karp(distances: &EdgeDataMatrixSym<Distance>) {
-    let mut upper_bound = u32::MAX;
+pub fn held_karp(
+    distances: &EdgeDataMatrixSym<Distance>,
+    edge_states: &mut EdgeStateMatrix,
+    upper_bound: u32,
+) {
     let mut edge_states = EdgeDataMatrixSym {
         data: vec![EdgeState::Available; distances.data.len()],
         dimension: distances.dimension,
     };
 
-    explore_node(
-        distances,
-        &mut edge_states,
-        &mut upper_bound,
-        &mut 0,
-        None,
-        0,
-    );
+    explore_node(distances, &mut edge_states, upper_bound, &mut 0, None, 0);
 }
 
 const INITIAL_MAX_ITERATIONS: usize = 1_000;
 const MAX_ITERATIONS: usize = 10;
+
+const INITIAL_ALPHA: f64 = 2.0;
 
 const INITIAL_BETA: f64 = 0.99;
 const BETA_INCREASE: f64 = 0.9;
@@ -114,7 +120,7 @@ impl EdgeState {
 fn explore_node(
     distances: &EdgeDataMatrixSym<Distance>,
     edge_states: &mut EdgeStateMatrix,
-    upper_bound: &mut u32,
+    upper_bound: u32,
     bb_counter: &mut usize,
     bb_limit: Option<usize>,
     depth: usize,
@@ -129,20 +135,20 @@ fn explore_node(
         }
     }
 
-    match held_karp_lower_bound() {
-        LowerBoundOutput::Tour(cost) => {
-            // Found a new tour, that is, an upper bound
-            *upper_bound = cost;
-            return;
-        }
-        LowerBoundOutput::LowerBound(lower_bound) => {
-            // Check if the lower bound is better than the current best cost
-            if lower_bound < *upper_bound {
-                // Prune this node, as we have already found a better tour than the lower bound
-                return;
-            }
-        }
-    };
+    // match held_karp_lower_bound() {
+    //     LowerBoundOutput::Tour(cost) => {
+    //         // Found a new tour, that is, an upper bound
+    //         upper_bound = cost;
+    //         return;
+    //     }
+    //     LowerBoundOutput::LowerBound(lower_bound) => {
+    //         // Check if the lower bound is better than the current best cost
+    //         if lower_bound < upper_bound {
+    //             // Prune this node, as we have already found a better tour than the lower bound
+    //             return;
+    //         }
+    //     }
+    // };
 
     let branching_edge = edge_to_branch_on();
 
@@ -154,13 +160,118 @@ fn explore_node(
 }
 
 enum LowerBoundOutput {
-    LowerBound(u32),
-    Tour(u32),
+    LowerBound(Distance),
+    Tour(UnTour),
 }
 
 /// Compute Held-Karp lower bound using 1-trees and Lagrangian relaxation
-fn held_karp_lower_bound() -> LowerBoundOutput {
-    todo!();
+fn held_karp_lower_bound(
+    distances: &EdgeDataMatrixSym<Distance>,
+    scaled_distances: &EdgeDataMatrixSym<ScaledDistance>,
+    edge_states: &EdgeStateMatrix,
+    node_penalties: &mut [ScaledDistance],
+    upper_bound: Distance,
+    max_iterations: usize,
+    beta: f64,
+) -> Option<LowerBoundOutput> {
+    let scaled_bound = ScaledDistance::from_distance(upper_bound);
+
+    // Tracks the current best lower bound found
+    let mut scaled_best_lower_bound = ScaledDistance::MIN;
+
+    let mut iter_count = 0;
+
+    let mut alpha = INITIAL_ALPHA;
+
+    let node_penalty_sum: ScaledDistance = node_penalties.iter().sum();
+
+    loop {
+        let one_tree = min_one_tree(scaled_distances, edge_states, node_penalties)?;
+
+        // Compute the cost of the 1-tree with penalties. This is simultaneously the value of
+        // the lagrangian relaxation and thus a lower bound (possibly an upper bound too, if it is a
+        // tour).
+        let one_tree_cost = {
+            let mut base_cost = 2 * node_penalty_sum;
+
+            for edge in &one_tree {
+                base_cost += scaled_distances.get_data(edge.from, edge.to);
+                base_cost -= node_penalties[edge.from.0];
+                base_cost -= node_penalties[edge.to.0];
+            }
+
+            base_cost
+        };
+
+        if one_tree_cost > scaled_best_lower_bound {
+            scaled_best_lower_bound = one_tree_cost;
+        }
+
+        if one_tree_cost >= scaled_bound {
+            // Lower bound exceeds current upper bound, prune
+            break;
+        }
+
+        // Next we check the degrees of the nodes in the 1-tree
+        // Deg[node] can be interpreted as follows:
+        //  Deg[node] < 0: Node has degree > 2 -> we need to decrease its penalty. This makes edges
+        //                 incident to node more expensive, that is, less likely to be selected.
+        //  Deg[node] > 0: Node has degree < 2 -> we need to increase its penalty. This makes edges
+        //                 incident to node cheaper, that is, more likely to be selected.
+        //  Deg[node] == 0: Node has degree == 2 -> no change to penalty.
+        let mut deg = vec![2i32; distances.dimension];
+
+        for edge in &one_tree {
+            deg[edge.from.0] -= 1;
+            deg[edge.to.0] -= 1;
+        }
+
+        let square_sum = deg.iter().map(|&d| d * d).sum::<i32>();
+
+        if square_sum == 0 {
+            // Found a tour
+            let cost: Distance = one_tree
+                .iter()
+                .map(|edge| distances.get_data(edge.from, edge.to))
+                .sum();
+
+            return Some(LowerBoundOutput::Tour(UnTour {
+                edges: one_tree,
+                cost,
+            }));
+        }
+
+        // We have not found a tour yet, so we want to update the penalties
+        iter_count += 1;
+
+        if iter_count >= max_iterations {
+            // Reached maximum iterations
+            break;
+        }
+
+        // TODO: Research on subgradient method for non-smooth optimization to find out more about
+        // this
+        let step_size =
+            (alpha * ((scaled_bound.0 - one_tree_cost.0) as f64 / (square_sum as f64))) as i32;
+
+        if step_size <= 3 {
+            // Step size is very small (<= 3 in scaled), we probably won't be making much progress
+            break;
+        }
+
+        alpha *= beta;
+
+        // Update penalties based on degree deviations and step size
+        // TODO: Handle overflows
+        for (node_penalty, &d) in node_penalties.iter_mut().zip(deg.iter()) {
+            let adjustment = ScaledDistance(step_size * d);
+            *node_penalty += adjustment;
+        }
+    }
+
+    let best_lower_bound = scaled_best_lower_bound.to_distance_rounded_up();
+
+    Some(LowerBoundOutput::LowerBound(best_lower_bound))
 }
 
 fn edge_to_branch_on() {
