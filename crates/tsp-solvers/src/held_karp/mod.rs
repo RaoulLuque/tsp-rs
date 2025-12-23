@@ -50,17 +50,39 @@ use crate::held_karp::{fixed_point_arithmetic::ScaledDistance, trees::min_one_tr
 mod fixed_point_arithmetic;
 mod trees;
 
-pub fn held_karp(
-    distances: &EdgeDataMatrixSym<Distance>,
-    edge_states: &mut EdgeStateMatrix,
-    upper_bound: u32,
-) {
+pub fn held_karp(distances: &EdgeDataMatrixSym<Distance>, edge_states: &mut EdgeStateMatrix) {
     let mut edge_states = EdgeDataMatrixSym {
         data: vec![EdgeState::Available; distances.data.len()],
         dimension: distances.dimension,
     };
 
-    explore_node(distances, &mut edge_states, upper_bound, &mut 0, None, 0);
+    let mut scaled_distances = EdgeDataMatrixSym {
+        data: distances
+            .data
+            .iter()
+            .map(|&d| ScaledDistance::from_distance(d))
+            .collect(),
+        dimension: distances.dimension,
+    };
+
+    let mut node_penalties = vec![ScaledDistance(0); distances.dimension];
+    let mut fixed_degrees = vec![0u32; distances.dimension];
+    let mut best_tour = None;
+    let mut bb_counter = 0;
+    let mut upper_bound = Distance::MAX;
+
+    explore_node(
+        distances,
+        &scaled_distances,
+        &mut edge_states,
+        node_penalties.as_mut_slice(),
+        fixed_degrees.as_mut_slice(),
+        &mut upper_bound,
+        &mut best_tour,
+        &mut bb_counter,
+        None,
+        0,
+    );
 }
 
 const INITIAL_MAX_ITERATIONS: usize = 1_000;
@@ -190,6 +212,7 @@ fn explore_node(
             scaled_distances,
             edge_states,
             node_penalties,
+            fixed_degrees,
             upper_bound,
             best_tour,
             bb_counter,
