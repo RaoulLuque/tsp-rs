@@ -53,7 +53,7 @@ impl<Data: Copy> EdgeDataMatrixSym<Data> {
 
     pub fn restrict_to_first_n<'a>(&'a self, n: usize) -> RestrictedDataMatrixSym<'a, Data> {
         RestrictedDataMatrixSym {
-            data: &self.data[0..(n * (n - 1)) / 2],
+            data: &self.data[0..(n * (n + 1)) / 2],
             dimension: n,
         }
     }
