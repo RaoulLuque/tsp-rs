@@ -154,13 +154,13 @@ fn explore_node(
     bb_counter: &mut usize,
     bb_limit: Option<usize>,
     depth: usize,
-) -> Option<()> {
+) {
     // Increment the branch count
     *bb_counter += 1;
 
     if let Some(limit) = bb_limit {
         if *bb_counter >= limit {
-            return None;
+            return;
         }
     }
 
@@ -183,27 +183,31 @@ fn explore_node(
             // Found a new tour, that is, an upper bound
             *upper_bound = tour.cost;
             *best_tour = Some(tour);
-            return None;
+            return;
         }
         Some(LowerBoundOutput::LowerBound(lower_bound, one_tree)) => {
             // Check if the lower bound is better than the current best cost
             if lower_bound >= *upper_bound {
                 // Prune this node, as we have already found a better tour than the lower bound
-                return None;
+                return;
             } else {
                 one_tree
             }
         }
         None => {
             // Infeasible node, prune
-            return None;
+            return;
         }
     };
 
-    let branching_edge =
-        edge_to_branch_on(scaled_distances, edge_states, node_penalties, &one_tree)?;
+    let Some(branching_edge) =
+        edge_to_branch_on(scaled_distances, edge_states, node_penalties, &one_tree)
+    else {
+        // No edge to branch on, so we prune
+        return;
+    };
 
-    // Try exploring the branch excluding the edge
+    // Explore the branch excluding the edge
     {
         edge_states.set_data(branching_edge.from, branching_edge.to, EdgeState::Excluded);
 
@@ -222,10 +226,33 @@ fn explore_node(
 
         edge_states.set_data(branching_edge.from, branching_edge.to, EdgeState::Available);
     }
-    todo!();
 
-    // Try exploring the branch including the edge
-    todo!();
+    // Try exploring the branch including the edge.
+    // That is, we might not be able to explore this branch, if we the edge inclusion would violate
+    // the already fixed degrees / edges.
+    if (fixed_degrees[branching_edge.from.0] < 2) && (fixed_degrees[branching_edge.to.0] < 2) {
+        edge_states.set_data(branching_edge.from, branching_edge.to, EdgeState::Fixed);
+        fixed_degrees[branching_edge.from.0] += 1;
+        fixed_degrees[branching_edge.to.0] += 1;
+
+        explore_node(
+            distances,
+            scaled_distances,
+            edge_states,
+            node_penalties,
+            fixed_degrees,
+            upper_bound,
+            best_tour,
+            bb_counter,
+            bb_limit,
+            depth + 1,
+        );
+
+        // Backtrack
+        edge_states.set_data(branching_edge.from, branching_edge.to, EdgeState::Available);
+        fixed_degrees[branching_edge.from.0] -= 1;
+        fixed_degrees[branching_edge.to.0] -= 1;
+    }
 }
 
 enum LowerBoundOutput {
