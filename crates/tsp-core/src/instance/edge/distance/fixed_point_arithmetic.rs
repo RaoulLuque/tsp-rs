@@ -3,7 +3,7 @@ use std::{
     ops::{Add, AddAssign, Mul, Sub, SubAssign},
 };
 
-use tsp_core::instance::edge::distance::Distance;
+use super::Distance;
 
 const FIXED_POINT_FRACTIONAL_BITS: u32 = 5;
 

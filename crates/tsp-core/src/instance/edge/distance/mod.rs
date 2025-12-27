@@ -3,7 +3,8 @@ use std::{
     ops::{Add, Mul, Sub},
 };
 
-use crate::instance::edge::data::{EdgeDataMatrixSym, RestrictedDataMatrixSym};
+mod fixed_point_arithmetic;
+pub use fixed_point_arithmetic::ScaledDistance;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Default)]
 pub struct Distance(pub i32);
@@ -12,9 +13,6 @@ impl Distance {
     pub const MAX: Distance = Distance(i32::MAX);
     pub const MIN: Distance = Distance(i32::MIN);
 }
-
-pub type DistanceMatrixSym = EdgeDataMatrixSym<Distance>;
-pub type RestrictedDistanceMatrixSym<'a> = RestrictedDataMatrixSym<'a, Distance>;
 
 impl Add for Distance {
     type Output = Self;

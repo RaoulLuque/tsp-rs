@@ -42,12 +42,15 @@ use std::u32;
 
 use tsp_core::instance::{
     UnTour,
-    edge::{UnEdge, data::EdgeDataMatrix, distance::Distance},
+    edge::{
+        UnEdge,
+        data::EdgeDataMatrix,
+        distance::{Distance, ScaledDistance},
+    },
 };
 
-use crate::held_karp::{fixed_point_arithmetic::ScaledDistance, trees::min_one_tree};
+use crate::held_karp::trees::min_one_tree;
 
-pub mod fixed_point_arithmetic;
 pub mod trees;
 
 pub fn held_karp(distances: &EdgeDataMatrix<Distance>) -> Option<UnTour> {

@@ -2,11 +2,12 @@ use tsp_core::instance::{
     edge::{
         UnEdge,
         data::{EdgeDataMatrix, EdgeDataMatrixZeroRemoved},
+        distance::ScaledDistance,
     },
     node::Node,
 };
 
-use crate::held_karp::{EdgeState, fixed_point_arithmetic::ScaledDistance};
+use crate::held_karp::EdgeState;
 
 /// Compute a minimum 1-tree with given node penalties and edge states.
 ///

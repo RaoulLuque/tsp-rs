@@ -1,9 +1,5 @@
 use crate::{
-    instance::edge::{
-        UnEdge,
-        data::EdgeDataMatrixSym,
-        distance::{Distance, DistanceMatrixSym},
-    },
+    instance::edge::{UnEdge, data::EdgeDataMatrixSym, distance::Distance},
     tsp_lib_spec::{
         DisplayDataType, EdgeDataFormat, EdgeWeightFormat, EdgeWeightType, NodeCoordType,
         ProblemType,
@@ -20,7 +16,7 @@ pub struct TSPSymInstance {
     ///
     /// Row major order, i.e. distance from node i to node j is at index (i * num_nodes + j).
     /// Node indexing starts at 0.
-    distances: DistanceMatrixSym,
+    distances: EdgeDataMatrixSym<Distance>,
 }
 
 impl TSPSymInstance {
@@ -33,7 +29,7 @@ impl TSPSymInstance {
     }
 
     pub fn new_from_distances_sym(
-        distances: DistanceMatrixSym,
+        distances: EdgeDataMatrixSym<Distance>,
         metadata: InstanceMetadata,
     ) -> Self {
         Self {
@@ -50,7 +46,7 @@ impl TSPSymInstance {
         &self.distances.data
     }
 
-    pub fn distances(&self) -> &DistanceMatrixSym {
+    pub fn distances(&self) -> &EdgeDataMatrixSym<Distance> {
         &self.distances
     }
 }
