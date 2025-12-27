@@ -193,7 +193,7 @@ fn explore_node(
     ) {
         Some(LowerBoundOutput::Tour(tour)) => {
             // Found a new tour, that is, an upper bound
-            println!("Found new tour with cost {:?}", tour.cost);
+            // println!("Found new tour with cost {:?}", tour.cost);
             *upper_bound = tour.cost;
             *best_tour = Some(tour);
             return;
@@ -201,10 +201,6 @@ fn explore_node(
         Some(LowerBoundOutput::LowerBound(lower_bound, one_tree)) => {
             // Check if the lower bound is better than the current best cost
             if lower_bound >= *upper_bound {
-                println!(
-                    "Pruning node with lower bound {:?} >= upper bound {:?}",
-                    lower_bound, *upper_bound
-                );
                 // Prune this node, as we have already found a better tour than the lower bound
                 return;
             } else {
@@ -309,13 +305,13 @@ fn held_karp_lower_bound(
         *number_computed_one_trees += 1;
 
         if *number_computed_one_trees % 1000000 == 0 {
-            let elapsed = start_time.elapsed().as_secs_f64();
-            println!(
-                "Computed {:8} 1-trees in {:8.2?} ({:8.2} 1-trees/sec)",
-                *number_computed_one_trees,
-                elapsed,
-                *number_computed_one_trees as f64 / elapsed
-            );
+            // let elapsed = start_time.elapsed().as_secs_f64();
+            // println!(
+            //     "Computed {:8} 1-trees in {:8.2?} ({:8.2} 1-trees/sec)",
+            //     *number_computed_one_trees,
+            //     elapsed,
+            //     *number_computed_one_trees as f64 / elapsed
+            // );
         }
 
         // Compute the cost of the 1-tree with penalties. This is simultaneously the value of
@@ -381,8 +377,9 @@ fn held_karp_lower_bound(
 
         // TODO: Research on subgradient method for non-smooth optimization to find out more about
         // this
-        let step_size =
-            (alpha * ((scaled_upper_bound.0 - one_tree_cost.0) as f64 / (square_sum as f64))) as i32;
+        let step_size = (alpha
+            * ((scaled_upper_bound.0 - one_tree_cost.0) as f64 / (square_sum as f64)))
+            as i32;
 
         if step_size <= 3 {
             // Step size is very small (<= 3 in scaled), we probably won't be making much progress
