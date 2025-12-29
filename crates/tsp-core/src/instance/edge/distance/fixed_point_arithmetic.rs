@@ -1,6 +1,6 @@
 use std::{
     iter::Sum,
-    ops::{Add, AddAssign, Mul, Sub, SubAssign},
+    ops::{Add, AddAssign, Div, Mul, Sub, SubAssign},
 };
 
 use super::Distance;
@@ -61,6 +61,14 @@ impl Sub for ScaledDistance {
 
     fn sub(self, other: Self) -> Self::Output {
         ScaledDistance(self.0 - other.0)
+    }
+}
+
+impl Div<i32> for ScaledDistance {
+    type Output = ScaledDistance;
+
+    fn div(self, rhs: i32) -> Self::Output {
+        ScaledDistance(self.0 / rhs)
     }
 }
 

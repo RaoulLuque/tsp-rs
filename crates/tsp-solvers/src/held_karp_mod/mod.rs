@@ -47,6 +47,7 @@ use tsp_core::instance::{
         data::EdgeDataMatrix,
         distance::{Distance, ScaledDistance},
     },
+    node::Node,
 };
 
 use crate::held_karp_mod::trees::min_one_tree;
@@ -68,7 +69,7 @@ pub fn held_karp(distances: &EdgeDataMatrix<Distance>) -> Option<UnTour> {
         dimension: distances.dimension,
     };
 
-    let mut node_penalties = initial_penalties(distances.dimension);
+    let mut node_penalties = initial_penalties(&scaled_distances, distances.dimension);
     let mut fixed_degrees = vec![0u32; distances.dimension];
     let mut best_tour = None;
     let mut bb_counter = 0;
@@ -426,6 +427,30 @@ fn edge_to_branch_on(
     minimum_edge
 }
 
-fn initial_penalties(dimension: usize) -> Vec<ScaledDistance> {
-    vec![ScaledDistance(0); dimension]
+/// Initializes node penalties for Lagrangian relaxation.
+///
+/// Node penalties are set to half the minimum distances to other nodes.
+fn initial_penalties(
+    scaled_distances: &EdgeDataMatrix<ScaledDistance>,
+    dimension: usize,
+) -> Vec<ScaledDistance> {
+    let mut penalties = vec![ScaledDistance::MAX; dimension];
+
+    for from in 0..dimension {
+        for to in 0..from {
+            let distance = scaled_distances.get_data_from_seq(Node(from), Node(to));
+            if distance < penalties[from] {
+                penalties[from] = distance;
+            }
+            if distance < penalties[to] {
+                penalties[to] = distance;
+            }
+        }
+    }
+
+    for penalty in penalties.iter_mut() {
+        *penalty = *penalty / 2;
+    }
+
+    penalties
 }
