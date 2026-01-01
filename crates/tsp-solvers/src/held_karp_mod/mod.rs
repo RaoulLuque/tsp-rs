@@ -69,12 +69,12 @@ by forcibly including or excluding edges.
 
 ## References and Credit
 
+- [Concorde TSP Solver](https://www.math.uwaterloo.ca/tsp/concorde.html): The Concorde TSP solver
+  is a well-known implementation of TSP algorithms, including the Held-Karp algorithm.
+  The implementation in this module is highly inspired by Concorde and its implementation.
 - [The Traveling Salesman Problem: A Computational Study](https://www.degruyterbrill.com/document/doi/10.1515/9781400841103/html?lang=en)
   by David L. Applegate, Robert E. Bixby, Vasek Chvatal, and William J. Cook.
   This book provides an in-depth treatment of various TSP algorithms, including the Held-Karp algorithm.
-- [Concorde TSP Solver](https://www.math.uwaterloo.ca/tsp/concorde.html): The Concorde TSP solver
-  is a well-known implementation of TSP algorithms, including the Held-Karp algorithm.
-  The implementation in this module is inspired by the techniques used in Concorde.
 
 */
 
