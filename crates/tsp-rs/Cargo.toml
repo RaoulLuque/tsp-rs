@@ -4,10 +4,9 @@ version = "0.1.0"
 
 keywords = ["tsp", "algorithms", "graphs", "networks"]
 description = "TSP tooling written in Rust."
+readme = "README.md"
 
-readme.workspace = true
 license.workspace = true
-documentation.workspace = true
 repository.workspace = true
 edition.workspace = true
 authors.workspace = true

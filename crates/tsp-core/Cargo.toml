@@ -5,10 +5,9 @@ description = "Types and utilities for TSP."
 
 keywords = ["tsp", "algorithms", "graphs", "networks"]
 categories = ["algorithms"]
+readme = "README.md"
 
-readme.workspace = true
 license.workspace = true
-documentation.workspace = true
 repository.workspace = true
 edition.workspace = true
 authors.workspace = true
