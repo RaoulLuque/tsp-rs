@@ -2,13 +2,15 @@ use std::{fs::File, path::Path};
 
 use memmap2::{Advice, Mmap};
 use thiserror::Error;
-use tsp_core::instance::TSPSymInstance;
+use tsp_core::instance::{TSPSymInstance, distance::Distance, matrix::MatrixSym};
 
 use crate::{
+    distance_container::ParseFromTSPLib,
     distance_data::parse_data_sections,
     metadata::{MetaDataParseError, parse_metadata},
 };
 
+pub mod distance_container;
 pub mod distance_data;
 pub mod metadata;
 
@@ -20,7 +22,9 @@ pub enum ParserError {
     MetaDataParsing(#[from] MetaDataParseError),
 }
 
-pub fn parse_tsp_instance<P: AsRef<Path>>(instance_path: P) -> Result<TSPSymInstance, ParserError> {
+pub fn parse_tsp_instance<DistanceContainer: ParseFromTSPLib>(
+    instance_path: impl AsRef<Path>,
+) -> Result<TSPSymInstance<DistanceContainer>, ParserError> {
     // Safety: This is the only point at which we access the file, so the file should not be
     // modified otherwise.
     let mmap = unsafe { Mmap::map(&File::open(instance_path)?)? };
@@ -29,7 +33,8 @@ pub fn parse_tsp_instance<P: AsRef<Path>>(instance_path: P) -> Result<TSPSymInst
 
     let (metadata, data_keyword) = parse_metadata(&mmap, &mut index_in_map)?;
 
-    let data = parse_data_sections(&mmap, &mut index_in_map, data_keyword, &metadata);
+    let data =
+        parse_data_sections::<DistanceContainer>(&mmap, &mut index_in_map, data_keyword, &metadata);
 
-    Ok(TSPSymInstance::new_from_distances_sym(data, metadata))
+    Ok(TSPSymInstance::new(data, metadata))
 }

@@ -4,7 +4,7 @@ use tsp_solvers::held_karp;
 #[test]
 fn test_held_karp_on_12() {
     let tsp_instance = tsp_parser::parse_tsp_instance("../../instances/tsp_rust/12.tsp").unwrap();
-    let distances_non_symmetric = tsp_instance.distances().to_edge_data_matrix();
+    let distances_non_symmetric = tsp_instance.distance_matrix().to_edge_data_matrix();
     let best_tour = held_karp(&distances_non_symmetric).unwrap();
     let edges = vec![
         UnEdge {

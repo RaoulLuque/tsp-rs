@@ -16,43 +16,35 @@ pub mod matrix;
 pub mod node;
 
 #[derive(Debug, Clone)]
-pub struct TSPSymInstance {
+pub struct TSPSymInstance<DistanceContainer> {
     metadata: InstanceMetadata,
     /// Flattened distance matrix
     ///
     /// Row major order, i.e. distance from node i to node j is at index (i * num_nodes + j).
     /// Node indexing starts at 0.
-    distances: MatrixSym<Distance>,
+    distances: DistanceContainer,
 }
 
-impl TSPSymInstance {
-    pub fn new_from_raw_data(distance_data: Vec<Distance>, metadata: InstanceMetadata) -> Self {
+impl<DistanceContainer> TSPSymInstance<DistanceContainer> {
+    pub fn new(distance_container: DistanceContainer, metadata: InstanceMetadata) -> Self {
         let dimension = metadata.dimension;
         Self {
             metadata,
-            distances: MatrixSym::new(distance_data, dimension),
-        }
-    }
-
-    pub fn new_from_distances_sym(
-        distances: MatrixSym<Distance>,
-        metadata: InstanceMetadata,
-    ) -> Self {
-        Self {
-            metadata,
-            distances,
+            distances: distance_container,
         }
     }
 
     pub fn metadata(&self) -> &InstanceMetadata {
         &self.metadata
     }
+}
 
+impl TSPSymInstance<MatrixSym<Distance>> {
     pub fn raw_distances(&self) -> &[Distance] {
         self.distances.data()
     }
 
-    pub fn distances(&self) -> &MatrixSym<Distance> {
+    pub fn distance_matrix(&self) -> &MatrixSym<Distance> {
         &self.distances
     }
 }

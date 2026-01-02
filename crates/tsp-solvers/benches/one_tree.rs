@@ -5,7 +5,7 @@ use tsp_solvers::held_karp_mod::{EdgeState, min_one_tree as min_one_tree_functio
 
 fn min_one_tree_benchmark(c: &mut Criterion) {
     let tsp_instance = parse_tsp_instance("../../instances/tsplib_symmetric/a280.tsp").unwrap();
-    let distances_non_symmetric = tsp_instance.distances().to_edge_data_matrix();
+    let distances_non_symmetric = tsp_instance.distance_matrix().to_edge_data_matrix();
     let scaled_distances = Matrix::new(
         distances_non_symmetric
             .data()
