@@ -15,7 +15,7 @@ use tsp_core::{
 pub(crate) mod distance_function;
 
 use crate::{
-    distance_container::ParseFromTSPLib, distance_data::distance_function::get_distance_function,
+    distance_container::ParseFromTSPLib, data_section::distance_function::get_distance_function,
 };
 
 pub fn parse_data_sections<DistanceContainer: ParseFromTSPLib>(

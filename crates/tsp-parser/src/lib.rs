@@ -6,12 +6,12 @@ use tsp_core::instance::TSPSymInstance;
 
 use crate::{
     distance_container::ParseFromTSPLib,
-    distance_data::parse_data_sections,
+    data_section::parse_data_sections,
     metadata::{MetaDataParseError, parse_metadata},
 };
 
 pub mod distance_container;
-pub mod distance_data;
+pub mod data_section;
 pub mod metadata;
 
 #[derive(Error, Debug)]
