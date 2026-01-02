@@ -5,25 +5,37 @@ use tsp_core::instance::{
 };
 
 use super::ParseFromTSPLib;
-use crate::data_section::Point2D;
+use crate::data_section::{GeoPoint, Point2D};
 
 // TODO: Add more fine grained benchmarks to determine optimal parallelism bound
 const PARALLELISM_BOUND: usize = 300_000;
 
 impl ParseFromTSPLib for MatrixSym<Distance> {
-    fn from_node_coord_section(
+    fn from_2d_node_coord_section(
         node_data: &Vec<Point2D>,
         metadata: &InstanceMetadata,
         distance_function: impl Fn(&Point2D, &Point2D) -> Distance + Sync + Send + Copy,
     ) -> Self {
-        compute_dists_from_node_coords(&node_data, metadata.dimension, distance_function)
+        compute_dists_from_node_coords::<Point2D>(&node_data, metadata.dimension, distance_function)
+    }
+
+    fn from_geo_node_coord_section(
+        node_data: &Vec<GeoPoint>,
+        metadata: &InstanceMetadata,
+        distance_function: impl Fn(&GeoPoint, &GeoPoint) -> Distance + Sync + Send + Copy,
+    ) -> Self {
+        compute_dists_from_node_coords::<GeoPoint>(
+            &node_data,
+            metadata.dimension,
+            distance_function,
+        )
     }
 }
 
-fn compute_dists_from_node_coords(
-    point_data: &[Point2D],
+fn compute_dists_from_node_coords<PointType: Send + Sync + Copy>(
+    point_data: &[PointType],
     dimension: usize,
-    distance_function: impl Fn(&Point2D, &Point2D) -> Distance + Sync + Send + Copy,
+    distance_function: impl Fn(&PointType, &PointType) -> Distance + Sync + Send + Copy,
 ) -> MatrixSym<Distance> {
     let total_size = dimension * (dimension + 1) / 2;
 
@@ -57,11 +69,11 @@ fn compute_dists_from_node_coords(
 }
 
 #[inline(always)]
-fn compute_dists_from_node_coords_chunk(
+fn compute_dists_from_node_coords_chunk<PointType: Copy>(
     chunk: &mut [Distance],
-    point_data: &[Point2D],
+    point_data: &[PointType],
     chunk_start_index: usize,
-    distance_function: impl Fn(&Point2D, &Point2D) -> Distance + Copy,
+    distance_function: impl Fn(&PointType, &PointType) -> Distance + Copy,
 ) {
     let (start_row, start_column) = {
         // We solve for row such that (row * (row + 1)) / 2 <= chunk_start_index is tight (i.e. row
@@ -131,14 +143,14 @@ fn compute_dists_from_node_coords_chunk(
 }
 
 #[inline(always)]
-fn compute_and_set_distance(
+fn compute_and_set_distance<PointType: Copy>(
     chunk: &mut [Distance],
     row: usize,
     column: usize,
     chunk_start_index: usize,
-    row_point_data: &Point2D,
-    column_point_data: &Point2D,
-    distance_function: impl Fn(&Point2D, &Point2D) -> Distance,
+    row_point_data: &PointType,
+    column_point_data: &PointType,
+    distance_function: impl Fn(&PointType, &PointType) -> Distance,
 ) {
     let distance = distance_function(row_point_data, column_point_data);
 

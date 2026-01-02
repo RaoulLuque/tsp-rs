@@ -7,19 +7,40 @@
 /// carried out in double precision arithmetic, i.e. `f64` in Rust.
 use memchr::memchr;
 use memmap2::Mmap;
-use tsp_core::{instance::InstanceMetadata, tsp_lib_spec::TSPDataKeyword};
+use tsp_core::{
+    instance::InstanceMetadata,
+    tsp_lib_spec::{EdgeWeightType, TSPDataKeyword},
+};
 
 pub(crate) mod distance_function;
 
 use crate::{
-    data_section::distance_function::get_distance_function, distance_container::ParseFromTSPLib,
+    data_section::distance_function::{
+        euclidean_distance_2d, geographical_distance, get_2d_distance_function,
+    },
+    distance_container::ParseFromTSPLib,
 };
 
-/// A simple 2D point representation.
+/// A point in 2D space.
 #[derive(Debug, Clone, Copy)]
 pub struct Point2D {
     pub x: f64,
     pub y: f64,
+}
+
+/// A point in 3D space.
+#[derive(Debug, Clone, Copy)]
+pub struct Point3D {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+}
+
+/// A point in geographical latitude and longitude radiance coordinates.
+#[derive(Debug, Clone, Copy)]
+pub struct GeoPoint {
+    pub latitude: f64,
+    pub longitude: f64,
 }
 
 pub fn parse_data_sections<DistanceContainer: ParseFromTSPLib>(
@@ -29,16 +50,84 @@ pub fn parse_data_sections<DistanceContainer: ParseFromTSPLib>(
     metadata: &InstanceMetadata,
 ) -> DistanceContainer {
     match data_keyword {
-        TSPDataKeyword::NODE_COORD_SECTION => {
-            let distance_function = get_distance_function(&metadata.edge_weight_type);
-            let node_data = parse_node_coord_section(mmap, index_in_map, metadata);
-            DistanceContainer::from_node_coord_section(&node_data, metadata, distance_function)
-        }
+        TSPDataKeyword::NODE_COORD_SECTION => match metadata.edge_weight_type {
+            // The distance function is not chosen via a match statement here because the compiler
+            // does not seem to inline the distance function properly in that case
+            // (leading to a big performance hit)
+            EdgeWeightType::EUC_2D => {
+                let distance_function = euclidean_distance_2d;
+                let node_data = parse_2d_node_coord_section(mmap, index_in_map, metadata);
+                DistanceContainer::from_2d_node_coord_section(
+                    &node_data,
+                    metadata,
+                    distance_function,
+                )
+            }
+            EdgeWeightType::MAX_2D => {
+                let distance_function = distance_function::max_distance_2d;
+                let node_data = parse_2d_node_coord_section(mmap, index_in_map, metadata);
+                DistanceContainer::from_2d_node_coord_section(
+                    &node_data,
+                    metadata,
+                    distance_function,
+                )
+            }
+            EdgeWeightType::MAN_2D => {
+                let distance_function = distance_function::manhattan_distance_2d;
+                let node_data = parse_2d_node_coord_section(mmap, index_in_map, metadata);
+                DistanceContainer::from_2d_node_coord_section(
+                    &node_data,
+                    metadata,
+                    distance_function,
+                )
+            }
+            EdgeWeightType::CEIL_2D => {
+                let distance_function = distance_function::ceil_distance_2d;
+                let node_data = parse_2d_node_coord_section(mmap, index_in_map, metadata);
+                DistanceContainer::from_2d_node_coord_section(
+                    &node_data,
+                    metadata,
+                    distance_function,
+                )
+            }
+            EdgeWeightType::ATT => {
+                let distance_function = distance_function::att_distance_2d;
+                let node_data = parse_2d_node_coord_section(mmap, index_in_map, metadata);
+                DistanceContainer::from_2d_node_coord_section(
+                    &node_data,
+                    metadata,
+                    distance_function,
+                )
+            }
+            EdgeWeightType::GEO => {
+                let distance_function = geographical_distance;
+                // TODO(perf): Possibly parallelize the conversion to geo coordinates
+                let node_data = parse_2d_node_coord_section(mmap, index_in_map, metadata)
+                    .into_iter()
+                    .map(|point| distance_function::convert_to_geo_coordinates(&point))
+                    .collect::<Vec<GeoPoint>>();
+                DistanceContainer::from_geo_node_coord_section(
+                    &node_data,
+                    metadata,
+                    distance_function,
+                )
+            }
+            EdgeWeightType::EUC_3D | EdgeWeightType::MAX_3D | EdgeWeightType::MAN_3D => {
+                unimplemented!("3D node coordinate parsing is not yet implemented");
+            }
+            EdgeWeightType::EXPLICIT => {
+                panic!("NODE_COORD_SECTION should not be used with EXPLICIT edge weight type")
+            }
+            _ => unimplemented!(
+                "Node coordinate type {:?} is not yet implemented",
+                metadata.node_coord_type
+            ),
+        },
         _ => todo!("Other data sections are not yet implemented"),
     }
 }
 
-fn parse_node_coord_section(
+fn parse_2d_node_coord_section(
     mmap: &Mmap,
     index_in_map: &mut usize,
     metadata: &InstanceMetadata,
