@@ -23,10 +23,10 @@ pub enum ParserError {
 }
 
 pub struct FileContent {
-    #[cfg(not(feature = "miri"))]
+    #[cfg(not(feature = "_miri"))]
     data: Mmap,
 
-    #[cfg(feature = "miri")]
+    #[cfg(feature = "_miri")]
     data: Vec<u8>,
 }
 
@@ -38,20 +38,24 @@ pub fn parse_tsp_instance<DistanceContainer: ParseFromTSPLib>(
 
     let (metadata, data_keyword) = parse_metadata(&file_content, &mut index_in_map)?;
 
-    let data =
-        parse_data_sections::<DistanceContainer>(&file_content, &mut index_in_map, data_keyword, &metadata);
+    let data = parse_data_sections::<DistanceContainer>(
+        &file_content,
+        &mut index_in_map,
+        data_keyword,
+        &metadata,
+    );
 
     Ok(TSPSymInstance::new(data, metadata))
 }
 
 impl FileContent {
     pub fn new(instance_path: impl AsRef<Path>) -> Result<Self, ParserError> {
-        #[cfg(feature = "miri")]
+        #[cfg(feature = "_miri")]
         {
             let data = std::fs::read(instance_path)?;
             Ok(FileContent { data })
         }
-        #[cfg(not(feature = "miri"))]
+        #[cfg(not(feature = "_miri"))]
         {
             // Safety: This is the only point at which we access the file, so the file should
             // not be modified otherwise.
@@ -66,11 +70,11 @@ impl Deref for FileContent {
     type Target = [u8];
 
     fn deref(&self) -> &Self::Target {
-        #[cfg(feature = "miri")]
+        #[cfg(feature = "_miri")]
         {
             &self.data
         }
-        #[cfg(not(feature = "miri"))]
+        #[cfg(not(feature = "_miri"))]
         {
             &self.data[..]
         }
