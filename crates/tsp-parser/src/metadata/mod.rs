@@ -10,7 +10,7 @@ use tsp_core::{
 };
 
 use crate::{
-    ParserError,
+    FileContent, ParserError,
     metadata::metadata_builder::{InstanceMetadataBuilder, InstanceMetadataBuilderError},
 };
 
@@ -48,19 +48,21 @@ pub enum MetaDataParseError {
 /// `TSPDataKeyword`, and a reference to the remaining lines iterator starting from the data section
 /// (the line after the first data keyword).
 pub fn parse_metadata(
-    mmap: &Mmap,
+    file_content: &FileContent,
     index_in_map: &mut usize,
 ) -> Result<(InstanceMetadata, TSPDataKeyword), ParserError> {
     let mut metadata_builder = InstanceMetadataBuilder::new();
     let data_keyword = loop {
-        let Some(index_newline) = memchr(b'\n', &mmap[*index_in_map..]) else {
+        let Some(index_newline) = memchr(b'\n', &file_content[*index_in_map..]) else {
             return Err(
                 MetaDataParseError::InvalidInput("Unexpected end of file".to_string()).into(),
             );
         };
 
         let line = unsafe {
-            std::str::from_utf8_unchecked(&mmap[*index_in_map..*index_in_map + index_newline])
+            std::str::from_utf8_unchecked(
+                &file_content[*index_in_map..*index_in_map + index_newline],
+            )
         };
         // println!("Parsing line: {}", line);
 

@@ -15,6 +15,7 @@ use tsp_core::{
 pub(crate) mod distance_function;
 
 use crate::{
+    FileContent,
     data_section::distance_function::{euclidean_distance_2d, geographical_distance},
     distance_container::ParseFromTSPLib,
 };
@@ -42,7 +43,7 @@ pub struct GeoPoint {
 }
 
 pub fn parse_data_sections<DistanceContainer: ParseFromTSPLib>(
-    mmap: &Mmap,
+    file_content: &FileContent,
     index_in_map: &mut usize,
     data_keyword: TSPDataKeyword,
     metadata: &InstanceMetadata,
@@ -53,33 +54,33 @@ pub fn parse_data_sections<DistanceContainer: ParseFromTSPLib>(
         // (leading to a big performance hit)
         EdgeWeightType::EUC_2D => {
             let distance_function = euclidean_distance_2d;
-            let node_data = parse_2d_node_coord_section(mmap, index_in_map, metadata);
+            let node_data = parse_2d_node_coord_section(file_content, index_in_map, metadata);
             DistanceContainer::from_node_coord_section(&node_data, metadata, distance_function)
         }
         EdgeWeightType::MAX_2D => {
             let distance_function = distance_function::max_distance_2d;
-            let node_data = parse_2d_node_coord_section(mmap, index_in_map, metadata);
+            let node_data = parse_2d_node_coord_section(file_content, index_in_map, metadata);
             DistanceContainer::from_node_coord_section(&node_data, metadata, distance_function)
         }
         EdgeWeightType::MAN_2D => {
             let distance_function = distance_function::manhattan_distance_2d;
-            let node_data = parse_2d_node_coord_section(mmap, index_in_map, metadata);
+            let node_data = parse_2d_node_coord_section(file_content, index_in_map, metadata);
             DistanceContainer::from_node_coord_section(&node_data, metadata, distance_function)
         }
         EdgeWeightType::CEIL_2D => {
             let distance_function = distance_function::ceil_distance_2d;
-            let node_data = parse_2d_node_coord_section(mmap, index_in_map, metadata);
+            let node_data = parse_2d_node_coord_section(file_content, index_in_map, metadata);
             DistanceContainer::from_node_coord_section(&node_data, metadata, distance_function)
         }
         EdgeWeightType::ATT => {
             let distance_function = distance_function::att_distance_2d;
-            let node_data = parse_2d_node_coord_section(mmap, index_in_map, metadata);
+            let node_data = parse_2d_node_coord_section(file_content, index_in_map, metadata);
             DistanceContainer::from_node_coord_section(&node_data, metadata, distance_function)
         }
         EdgeWeightType::GEO => {
             let distance_function = geographical_distance;
             // TODO(perf): Possibly parallelize the conversion to geo coordinates
-            let node_data = parse_2d_node_coord_section(mmap, index_in_map, metadata)
+            let node_data = parse_2d_node_coord_section(file_content, index_in_map, metadata)
                 .into_iter()
                 .map(|point| distance_function::convert_to_geo_coordinates(&point))
                 .collect::<Vec<GeoPoint>>();
@@ -87,17 +88,17 @@ pub fn parse_data_sections<DistanceContainer: ParseFromTSPLib>(
         }
         EdgeWeightType::EUC_3D => {
             let distance_function = distance_function::euclidean_distance_3d;
-            let node_data = parse_3d_node_coord_section(mmap, index_in_map, metadata);
+            let node_data = parse_3d_node_coord_section(file_content, index_in_map, metadata);
             DistanceContainer::from_node_coord_section(&node_data, metadata, distance_function)
         }
         EdgeWeightType::MAX_3D => {
             let distance_function = distance_function::max_distance_3d;
-            let node_data = parse_3d_node_coord_section(mmap, index_in_map, metadata);
+            let node_data = parse_3d_node_coord_section(file_content, index_in_map, metadata);
             DistanceContainer::from_node_coord_section(&node_data, metadata, distance_function)
         }
         EdgeWeightType::MAN_3D => {
             let distance_function = distance_function::manhattan_distance_3d;
-            let node_data = parse_3d_node_coord_section(mmap, index_in_map, metadata);
+            let node_data = parse_3d_node_coord_section(file_content, index_in_map, metadata);
             DistanceContainer::from_node_coord_section(&node_data, metadata, distance_function)
         }
         EdgeWeightType::EXPLICIT => {
@@ -112,17 +113,17 @@ pub fn parse_data_sections<DistanceContainer: ParseFromTSPLib>(
 }
 
 fn parse_2d_node_coord_section(
-    mmap: &Mmap,
+    file_content: &FileContent,
     index_in_map: &mut usize,
     metadata: &InstanceMetadata,
 ) -> Vec<Point2D> {
     let mut point_data: Vec<Point2D> = Vec::with_capacity(metadata.dimension);
 
     // Read a line to test if the point data is floating point or integer
-    let is_float_data = is_float_data(mmap, index_in_map);
+    let is_float_data = is_float_data(file_content, index_in_map);
 
-    while let Some(index_newline) = memchr(b'\n', &mmap[*index_in_map..]) {
-        let line = &mmap[*index_in_map..*index_in_map + index_newline];
+    while let Some(index_newline) = memchr(b'\n', &file_content[*index_in_map..]) {
+        let line = &file_content[*index_in_map..*index_in_map + index_newline];
         // SAFETY: The TSP instance file is expected to be valid UTF-8
         let line_str = unsafe { std::str::from_utf8_unchecked(line) };
 
@@ -143,17 +144,17 @@ fn parse_2d_node_coord_section(
 }
 
 fn parse_3d_node_coord_section(
-    mmap: &Mmap,
+    file_content: &FileContent,
     index_in_map: &mut usize,
     metadata: &InstanceMetadata,
 ) -> Vec<Point3D> {
     let mut point_data: Vec<Point3D> = Vec::with_capacity(metadata.dimension);
 
     // Read a line to test if the point data is floating point or integer
-    let is_float_data = is_float_data(mmap, index_in_map);
+    let is_float_data = is_float_data(file_content, index_in_map);
 
-    while let Some(index_newline) = memchr(b'\n', &mmap[*index_in_map..]) {
-        let line = &mmap[*index_in_map..*index_in_map + index_newline];
+    while let Some(index_newline) = memchr(b'\n', &file_content[*index_in_map..]) {
+        let line = &file_content[*index_in_map..*index_in_map + index_newline];
         // SAFETY: The TSP instance file is expected to be valid UTF-8
         let line_str = unsafe { std::str::from_utf8_unchecked(line) };
 
@@ -248,10 +249,10 @@ fn parse_line_to_3d_point(line_str: &str, is_float_data: bool) -> Point3D {
 }
 
 #[inline(always)]
-fn is_float_data(mmap: &Mmap, index_in_map: &usize) -> bool {
-    let index_newline =
-        memchr(b'\n', &mmap[*index_in_map..]).expect("The data section should not be empty");
-    let line = &mmap[*index_in_map..*index_in_map + index_newline];
+fn is_float_data(file_content: &FileContent, index_in_map: &usize) -> bool {
+    let index_newline = memchr(b'\n', &file_content[*index_in_map..])
+        .expect("The data section should not be empty");
+    let line = &file_content[*index_in_map..*index_in_map + index_newline];
 
     // SAFETY: The TSP instance file is expected to be valid UTF-8
     let line_str = unsafe { std::str::from_utf8_unchecked(line) };
