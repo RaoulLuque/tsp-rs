@@ -69,7 +69,7 @@ create_held_karp_benchmarks!(
 fn parse_d18512_into_symmetric(c: &mut Criterion) {
     let mut group = c.benchmark_group("d18512_parsing");
     group.sample_size(20);
-    group.bench_function("Parse and compute distances \"d18512.tsp\"", |b| {
+    group.bench_function("Parse \"d18512.tsp\" into symmetric", |b| {
         b.iter(|| {
             parse_tsp_instance::<MatrixSym<Distance>>("../../instances/tsplib_symmetric/d18512.tsp")
                 .unwrap()
@@ -78,5 +78,21 @@ fn parse_d18512_into_symmetric(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(d18512, parse_d18512_into_symmetric);
+fn parse_d18512_into_non_symmetric(c: &mut Criterion) {
+    let mut group = c.benchmark_group("d18512_parsing");
+    group.sample_size(20);
+    group.bench_function("Parse \"d18512.tsp\" into non-symmetric", |b| {
+        b.iter(|| {
+            parse_tsp_instance::<Matrix<Distance>>("../../instances/tsplib_symmetric/d18512.tsp")
+                .unwrap()
+        })
+    });
+    group.finish();
+}
+
+criterion_group!(
+    d18512,
+    parse_d18512_into_symmetric,
+    parse_d18512_into_non_symmetric
+);
 criterion_main!(a280, d198, d493, d1291, d18512);
