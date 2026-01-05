@@ -181,8 +181,12 @@ fn parse_line_to_2d_point(line_str: &str, is_float_data: bool) -> Point2D {
     let mut parts = line_str.split_ascii_whitespace();
     let _node_index = parts.next();
 
-    let x_str = parts.next().expect("Missing x coordinate");
-    let y_str = parts.next().expect("Missing y coordinate");
+    let x_str = parts
+        .next()
+        .expect(format!("Missing x coordinate: {}", line_str).as_str());
+    let y_str = parts
+        .next()
+        .expect(format!("Missing y coordinate: {}", line_str).as_str());
     let (x, y) = if is_float_data {
         (
             x_str
@@ -195,12 +199,12 @@ fn parse_line_to_2d_point(line_str: &str, is_float_data: bool) -> Point2D {
     } else {
         (
             x_str
-                .parse::<u64>()
-                .expect("x coordinate should be a valid u64 integer by sampling first line")
+                .parse::<i32>()
+                .expect("x coordinate should be a valid i32 integer by sampling first line")
                 as f64,
             y_str
-                .parse::<u64>()
-                .expect("y coordinate should be a valid u64 integer by sampling first line")
+                .parse::<i32>()
+                .expect("y coordinate should be a valid i32 integer by sampling first line")
                 as f64,
         )
     };
@@ -232,16 +236,16 @@ fn parse_line_to_3d_point(line_str: &str, is_float_data: bool) -> Point3D {
     } else {
         (
             x_str
-                .parse::<u64>()
-                .expect("x coordinate should be a valid u64 integer by sampling first line")
+                .parse::<i32>()
+                .expect("x coordinate should be a valid i32 integer by sampling first line")
                 as f64,
             y_str
-                .parse::<u64>()
-                .expect("y coordinate should be a valid u64 integer by sampling first line")
+                .parse::<i32>()
+                .expect("y coordinate should be a valid i32 integer by sampling first line")
                 as f64,
             z_str
-                .parse::<u64>()
-                .expect("z coordinate should be a valid u64 integer by sampling first line")
+                .parse::<i32>()
+                .expect("z coordinate should be a valid i32 integer by sampling first line")
                 as f64,
         )
     };
