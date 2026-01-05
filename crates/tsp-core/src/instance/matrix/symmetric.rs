@@ -136,7 +136,7 @@ impl<Data: Display + Ord + Copy> Display for MatrixSym<Data> {
             .expect("MatrixSym should have at least one entry for display");
         let max_len = format!("{}", max_value).len();
         for row in 0..self.dimension {
-            for column in 0..row {
+            for column in 0..=row {
                 let value = self.get_data_from_bigger(Node(row), Node(column));
                 write!(f, "{:max_len$} ", value)?;
             }
