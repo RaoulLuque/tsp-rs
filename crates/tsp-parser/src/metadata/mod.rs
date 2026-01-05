@@ -97,7 +97,7 @@ fn parse_specification_or_data_keyword(
             Ok(None)
         }
         // Cold path(s)
-        (Some(k), None) => Ok(Some(parse_data_keyword(k)?)),
+        (Some(k), None) => Ok(Some(parse_data_keyword(k.trim())?)),
         _ => Err(MetaDataParseError::InvalidKeyword(line.to_string()).into()),
     }
 }
