@@ -158,14 +158,15 @@ fn explore_node_new_thread(
             *threads_spawned.lock().unwrap() += 1;
             thread::scope(|s| {
                 // Explore the branch excluding the edge
-                {
+                let thread_handle = {
                     let mut edge_states_clone = edge_states.clone();
                     let mut node_penalties_clone = node_penalties.to_vec();
                     let mut fixed_degrees_clone = fixed_degrees.to_vec();
                     let best_tour_handle = best_tour.clone();
                     let mut bb_counter_clone = bb_counter.clone();
                     let threads_spawned_handle = threads_spawned.clone();
-                    s.spawn(move || {
+
+                    let thread_handle = s.spawn(move || {
                         edge_states_clone.set_data_symmetric(
                             branching_edge.from,
                             branching_edge.to,
@@ -185,7 +186,9 @@ fn explore_node_new_thread(
                             threads_spawned_handle,
                         );
                     });
-                }
+
+                    thread_handle
+                };
 
                 // Try exploring the branch including the edge.
                 // That is, we might not be able to explore this branch, if we the edge inclusion
@@ -220,10 +223,10 @@ fn explore_node_new_thread(
                 );
                 fixed_degrees[branching_edge.from.0] -= 1;
                 fixed_degrees[branching_edge.to.0] -= 1;
-
-                // Decrement the thread count
-                *threads_spawned.lock().unwrap() -= 1;
             });
+            
+            // Decrement the thread count
+            *threads_spawned.lock().unwrap() -= 1;
         } else {
             // We cannot spawn a new thread, so we explore both branches in the current thread
             {
