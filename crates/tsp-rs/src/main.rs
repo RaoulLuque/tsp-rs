@@ -4,24 +4,18 @@ use tsp_core::instance::{
     distance::Distance,
     matrix::{Matrix, MatrixSym},
 };
-use tsp_solvers::held_karp;
+use tsp_solvers::{held_karp, held_karp_mod::held_karp_parallel};
 
 fn main() {
-    // env_logger::init();
+    env_logger::init();
 
     let tsp_instance =
-        tsp_parser::parse_tsp_instance::<Matrix<Distance>>("instances/tsp_rust/12.tsp").unwrap();
-    println!("Parsed TSP instance: {}", tsp_instance);
-    let tsp_instance =
-        tsp_parser::parse_tsp_instance::<MatrixSym<Distance>>("instances/tsp_rust/12.tsp")
+        tsp_parser::parse_tsp_instance::<Matrix<Distance>>("instances/tsplib_symmetric/st70.tsp")
             .unwrap();
-    println!("Parsed TSP instance: {}", tsp_instance);
-    // println!("Parsed TSP instance: {:?}", tsp_instance.raw_distances());
-    // let distances_non_symmetric = tsp_instance.distance_matrix().to_edge_data_matrix();
-    // let best_tour = held_karp(&distances_non_symmetric);
-    // if let Some(best_tour) = &best_tour {
-    //     println!("Best tour found: {:?}", best_tour.cost.0);
-    // }/*  */
+    let best_tour = held_karp_parallel(tsp_instance.distance_matrix());
+    if let Some(best_tour) = &best_tour {
+        println!("Best tour found: {:?}", best_tour.cost.0);
+    }
 }
 
 #[cfg(test)]

@@ -89,8 +89,9 @@ use tsp_core::instance::{
     node::Node,
 };
 
-pub use crate::held_karp_mod::trees::min_one_tree;
+pub use crate::held_karp_mod::{parallel::held_karp_parallel, trees::min_one_tree};
 
+mod parallel;
 mod trees;
 
 /// Solve the Traveling Salesman Problem using the Held-Karp algorithm.
@@ -211,7 +212,7 @@ fn explore_node(
     ) {
         Some(LowerBoundOutput::Tour(tour)) => {
             // Found a new tour, that is, an upper bound
-            info!("Found a new best tour with cost {}", tour.cost.0);
+            debug!("Found a new best tour with cost {}", tour.cost.0);
             *upper_bound = tour.cost;
             *best_tour = Some(tour);
             return;
@@ -220,7 +221,7 @@ fn explore_node(
             // Check if the lower bound is better than the current best cost
             if lower_bound >= *upper_bound {
                 // Prune this node, as we have already found a better tour than the lower bound
-                debug!(
+                trace!(
                     "Pruning node with lower bound {} >= upper bound {}",
                     lower_bound.0, upper_bound.0
                 );

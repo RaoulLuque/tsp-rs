@@ -1,7 +1,11 @@
 use std::fmt::Display;
 
 use crate::{
-    instance::{distance::Distance, edge::UnEdge, matrix::MatrixSym},
+    instance::{
+        distance::Distance,
+        edge::UnEdge,
+        matrix::{Matrix, MatrixSym},
+    },
     tsp_lib_spec::{
         DisplayDataType, EdgeDataFormat, EdgeWeightFormat, EdgeWeightType, NodeCoordType,
         ProblemType,
@@ -43,6 +47,16 @@ impl TSPSymInstance<MatrixSym<Distance>> {
     }
 
     pub fn distance_matrix(&self) -> &MatrixSym<Distance> {
+        &self.distances
+    }
+}
+
+impl TSPSymInstance<Matrix<Distance>> {
+    pub fn raw_distances(&self) -> &[Distance] {
+        self.distances.data()
+    }
+
+    pub fn distance_matrix(&self) -> &Matrix<Distance> {
         &self.distances
     }
 }
