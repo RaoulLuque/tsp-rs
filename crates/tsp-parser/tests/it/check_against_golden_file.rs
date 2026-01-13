@@ -13,9 +13,11 @@ use tsp_core::instance::{
 
 fn check_input_file_against_golden_file(file_name: &str) {
     let input_instance_sym: TSPSymInstance<MatrixSym<Distance>> =
-        tsp_parser::parse_tsp_instance("../../instances/".to_owned() + file_name + ".tsp").unwrap();
+        tsp_parser::parse_tsp_instance("../../instances/".to_owned() + file_name + ".tsp")
+            .expect("Symmetric parsing should succeed");
     let input_instance_matrix: TSPSymInstance<Matrix<Distance>> =
-        tsp_parser::parse_tsp_instance("../../instances/".to_owned() + file_name + ".tsp").unwrap();
+        tsp_parser::parse_tsp_instance("../../instances/".to_owned() + file_name + ".tsp")
+            .expect("Matrix parsing should succeed");
     let golden_distance_data = BufReader::new(
         File::open(
             "tests/test_assets/distances/".to_owned()
@@ -85,7 +87,12 @@ fn test_12_short() {
 }
 
 #[test]
-fn test_berlin52_short() {
+fn test_ulysses22_short() {
+    check_input_file_against_golden_file("tsplib_symmetric/ulysses22");
+}
+
+#[test]
+fn test_berlin52() {
     check_input_file_against_golden_file("tsplib_symmetric/berlin52");
 }
 

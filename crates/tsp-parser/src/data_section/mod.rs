@@ -36,7 +36,7 @@ pub struct Point3D {
 }
 
 /// A point in geographical latitude and longitude radiance coordinates.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct GeoPoint {
     pub latitude: f64,
     pub longitude: f64,

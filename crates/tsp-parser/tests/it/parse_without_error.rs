@@ -44,7 +44,7 @@ fn handle_error(err: Box<dyn Any + Send>) {
     }
 }
 
-test_fn_on_instances_filtered!(parse_instance_symmetric, short_symmetric, 0, 100);
-test_fn_on_instances_filtered!(parse_instance_non_symmetric, short_non_symmetric, 0, 100);
-test_fn_on_instances_filtered!(parse_instance_symmetric, symmetric, 101, 10000);
-test_fn_on_instances_filtered!(parse_instance_non_symmetric, non_symmetric, 101, 10000);
+test_fn_on_instances_filtered!(parse_instance_symmetric, short_symmetric, 0, 50);
+test_fn_on_instances_filtered!(parse_instance_non_symmetric, short_non_symmetric, 0, 50);
+test_fn_on_instances_filtered!(parse_instance_symmetric, symmetric, 51, 10000);
+test_fn_on_instances_filtered!(parse_instance_non_symmetric, non_symmetric, 51, 10000);
