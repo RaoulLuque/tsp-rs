@@ -1,11 +1,11 @@
-use tsp_core::instance::{UnTour, distance::Distance, edge::UnEdge, node::Node};
+use tsp_core::instance::{TSPSymInstance, UnTour, distance::Distance, edge::UnEdge, matrix::Matrix, node::Node};
 use tsp_solvers::held_karp;
 
 #[test]
 fn test_held_karp_on_12() {
-    let tsp_instance = tsp_parser::parse_tsp_instance("../../instances/tsp_rust/12.tsp").unwrap();
-    let distances_non_symmetric = tsp_instance.distance_matrix().to_edge_data_matrix();
-    let best_tour = held_karp(&distances_non_symmetric).unwrap();
+    let tsp_instance: TSPSymInstance<Matrix<Distance>> =
+        tsp_parser::parse_tsp_instance("../../instances/tsp_rust/12.tsp").unwrap();
+    let best_tour = held_karp(&tsp_instance.distance_matrix()).unwrap();
     let edges = vec![
         UnEdge {
             from: Node(1),

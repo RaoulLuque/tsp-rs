@@ -4,10 +4,17 @@ use std::{
     io::{BufRead, BufReader},
 };
 
-use tsp_core::instance::distance::Distance;
+use tsp_core::instance::{
+    TSPSymInstance,
+    distance::Distance,
+    matrix::{Matrix, MatrixSym},
+    node::Node,
+};
 
 fn check_input_file_against_golden_file(file_name: &str) {
-    let input_instance =
+    let input_instance_sym: TSPSymInstance<MatrixSym<Distance>> =
+        tsp_parser::parse_tsp_instance("../../instances/".to_owned() + file_name + ".tsp").unwrap();
+    let input_instance_matrix: TSPSymInstance<Matrix<Distance>> =
         tsp_parser::parse_tsp_instance("../../instances/".to_owned() + file_name + ".tsp").unwrap();
     let golden_distance_data = BufReader::new(
         File::open(
@@ -30,19 +37,46 @@ fn check_input_file_against_golden_file(file_name: &str) {
 
     assert_eq!(
         golden_distance_data.len(),
-        input_instance.raw_distances().len()
+        input_instance_sym.raw_distances().len()
     );
     for (i, &distance) in golden_distance_data.iter().enumerate() {
         assert_eq!(
             distance,
-            input_instance.raw_distances()[i],
+            input_instance_sym.raw_distances()[i],
             "Distance data mismatch at index {} with values {:?} (expected) vs {:?} (actual)",
             i,
             distance,
-            input_instance.raw_distances()[i]
+            input_instance_sym.raw_distances()[i]
         );
     }
-    assert_eq!(input_instance.raw_distances(), golden_distance_data);
+    println!(
+        "Symmetric Matrix: \n{}",
+        input_instance_sym.distance_matrix()
+    );
+    println!("Matrix: \n{}", input_instance_matrix.distance_matrix());
+    assert_eq!(input_instance_sym.raw_distances(), golden_distance_data);
+    for row in 0..input_instance_matrix.distance_matrix().dimension() {
+        for col in 0..input_instance_matrix.distance_matrix().dimension() {
+            assert_eq!(
+                input_instance_matrix
+                    .distance_matrix()
+                    .get_data(Node(row), Node(col)),
+                input_instance_sym
+                    .distance_matrix()
+                    .get_data(Node(row), Node(col)),
+                "Distance matrix mismatch at position ({}, {}) with values {:?} (symmetric) vs \
+                 {:?} (matrix)",
+                row,
+                col,
+                input_instance_sym
+                    .distance_matrix()
+                    .get_data(Node(row), Node(col)),
+                input_instance_matrix
+                    .distance_matrix()
+                    .get_data(Node(row), Node(col))
+            );
+        }
+    }
 }
 
 #[test]
@@ -68,9 +102,4 @@ fn test_d198() {
 #[test]
 fn test_d493() {
     check_input_file_against_golden_file("tsplib_symmetric/d493");
-}
-
-#[test]
-fn test_short_a() {
-    assert!(true);
 }
