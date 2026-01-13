@@ -1,4 +1,6 @@
-use tsp_core::instance::{TSPSymInstance, UnTour, distance::Distance, edge::UnEdge, matrix::Matrix, node::Node};
+use tsp_core::instance::{
+    TSPSymInstance, UnTour, distance::Distance, edge::UnEdge, matrix::Matrix, node::Node,
+};
 use tsp_solvers::held_karp;
 
 #[test]

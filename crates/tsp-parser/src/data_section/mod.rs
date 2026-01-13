@@ -103,7 +103,7 @@ pub fn parse_data_sections<DistanceContainer: ParseFromTSPLib>(
         }
         EdgeWeightType::EXPLICIT => {
             // TODO: Implement explicit distance matrix parsing
-            todo!("Explicit distance matrix parsing is not yet implemented");
+            todo!("Explicit distance matrix parsing is not supported yet");
         }
         _ => unimplemented!(
             "Node coordinate type {:?} is not yet implemented",

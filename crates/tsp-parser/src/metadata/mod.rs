@@ -166,7 +166,7 @@ fn parse_data_keyword(input: &str) -> Result<TSPDataKeyword, ParserError> {
         "DEPOT_SECTION" => Ok(TSPDataKeyword::DEPOT_SECTION),
         "DEMAND_SECTION" => Ok(TSPDataKeyword::DEMAND_SECTION),
         "EDGE_DATA_SECTION" => Ok(TSPDataKeyword::EDGE_DATA_SECTION),
-        "FIXED_EDGES_SECTION" => unimplemented!("Fixed edges sections are not supported yet"),
+        "FIXED_EDGES_SECTION" => todo!("Fixed edges sections are not supported yet"),
         "DISPLAY_DATA_SECTION" => Ok(TSPDataKeyword::DISPLAY_DATA_SECTION),
         "TOUR_SECTION" => Ok(TSPDataKeyword::TOUR_SECTION),
         "EDGE_WEIGHT_SECTION" => Ok(TSPDataKeyword::EDGE_WEIGHT_SECTION),

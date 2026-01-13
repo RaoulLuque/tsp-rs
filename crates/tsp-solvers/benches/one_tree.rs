@@ -1,18 +1,23 @@
 use criterion::{BatchSize::SmallInput, Criterion, criterion_group, criterion_main};
-use tsp_core::instance::{distance::ScaledDistance, matrix::Matrix};
+use tsp_core::instance::{
+    TSPSymInstance,
+    distance::{Distance, ScaledDistance},
+    matrix::Matrix,
+};
 use tsp_parser::parse_tsp_instance;
 use tsp_solvers::held_karp_mod::{EdgeState, min_one_tree as min_one_tree_function};
 
 fn min_one_tree_benchmark(c: &mut Criterion) {
-    let tsp_instance = parse_tsp_instance("../../instances/tsplib_symmetric/a280.tsp").unwrap();
-    let distances_non_symmetric = tsp_instance.distance_matrix().to_edge_data_matrix();
+    let tsp_instance: TSPSymInstance<Matrix<Distance>> =
+        parse_tsp_instance("../../instances/tsplib_symmetric/a280.tsp").unwrap();
     let scaled_distances = Matrix::new(
-        distances_non_symmetric
+        tsp_instance
+            .distance_matrix()
             .data()
             .iter()
             .map(|&d| ScaledDistance::from_distance(d))
             .collect::<Vec<_>>(),
-        distances_non_symmetric.dimension(),
+        tsp_instance.distance_matrix().dimension(),
     );
     let edge_states =
         Matrix::new_from_dimension_with_value(scaled_distances.dimension(), EdgeState::Available);
