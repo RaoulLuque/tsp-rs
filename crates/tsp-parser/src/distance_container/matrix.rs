@@ -50,7 +50,8 @@ fn compute_dists_from_node_coords<PointType: Send + Sync>(
             // - current_first_entry_index: The index, if one was to only consider the
             //   lower-triangular part of the matrix, of the first entry in the current chunk
             //
-            // We distinguish these two "realms" by including chunk / entry in the variable names.
+            // We distinguish these two "realms" by including chunk / entry in the variable names,
+            // respectively.
             let mut current_chunk_start = 0;
             let mut current_first_entry_index = 0;
             let mut rest_distances = distance_data.as_mut_slice();
@@ -72,6 +73,15 @@ fn compute_dists_from_node_coords<PointType: Send + Sync>(
                 let (distances_chunk, rest_distances_tmp) =
                     rest_distances.split_at_mut(current_chunk_size);
                 rest_distances = rest_distances_tmp;
+
+                println!(
+                    "Current chunk start: {}, first entry index: {}, chunk size: {}, number of \
+                     entries in chunk: {}",
+                    current_chunk_start,
+                    current_first_entry_index,
+                    current_chunk_size,
+                    number_of_entries_current_chunk,
+                );
 
                 scope.spawn(move || {
                     compute_dists_from_node_coords_chunk(
@@ -115,9 +125,14 @@ fn compute_dists_from_node_coords_chunk<PointType>(
     let (end_row, end_column) = find_row_column_from_lower_triangle_index(
         first_entry_index + number_of_entries_in_chunk - 1,
     );
-
+    println!(
+        "Start row: {}, start column: {}, end row: {}, end column: {}",
+        start_row, start_column, end_row, end_column
+    );
     let start_row_point_data = &point_data[start_row];
-    // We can omit the column = start_row case, as it is always zero distance
+    // We take() to only iterate up to start_row - 1, that is, we can omit the column = start_row
+    // case, as it is always zero distance
+    // We also skip() to start from start_column
     for (column, column_point_data) in point_data
         .iter()
         .enumerate()
@@ -154,8 +169,8 @@ fn compute_dists_from_node_coords_chunk<PointType>(
     }
 
     let end_row_point_data = &point_data[end_row];
-    // We can omit the column = start_row case, as it is always zero distance
-    for (column, column_point_data) in point_data.iter().enumerate().take(end_column) {
+    // We take() to only iterate up to end_column, since it's one indexed, we add 1
+    for (column, column_point_data) in point_data.iter().enumerate().take(end_column + 1) {
         compute_and_set_distance(
             chunk,
             end_row,
