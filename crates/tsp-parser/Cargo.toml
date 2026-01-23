@@ -29,5 +29,9 @@ tsp-macros = {workspace = true}
 _miri = []
 
 [[bench]]
-name = "parse_into_matrix"
+name = "parse_node_coord_non_sym"
+harness = false
+
+[[bench]]
+name = "parse_node_coord_sym"
 harness = false
