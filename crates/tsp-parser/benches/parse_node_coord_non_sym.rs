@@ -1,5 +1,5 @@
 use criterion::{Criterion, criterion_group, criterion_main};
-use tsp_core::instance::{distance::Distance, matrix::Matrix};
+use tsp_core::instance::{distance::Distance, matrix::SquareMatrix};
 use tsp_parser::parse_tsp_instance;
 
 macro_rules! create_parse_benchmark_non_symmetric {

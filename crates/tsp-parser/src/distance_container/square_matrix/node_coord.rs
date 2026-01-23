@@ -1,30 +1,17 @@
-use std::cell::UnsafeCell;
-
 use log::trace;
-use tsp_core::instance::{InstanceMetadata, distance::Distance, matrix::Matrix};
+use tsp_core::instance::{distance::Distance, matrix::SquareMatrix};
 
-use super::ParseFromTSPLib;
 use crate::distance_container::find_row_column_from_lower_triangle_index;
 
 // TODO: Add more fine grained benchmarks to determine optimal parallelism bound
 const PARALLELISM_BOUND: usize = 100_000;
 
-impl ParseFromTSPLib for Matrix<Distance> {
-    fn from_node_coord_section<PointType: Sync + Send>(
-        node_data: &Vec<PointType>,
-        metadata: &InstanceMetadata,
-        distance_function: impl Fn(&PointType, &PointType) -> Distance + Sync + Send + Copy,
-    ) -> Self {
-        compute_dists_from_node_coords(&node_data, metadata.dimension, distance_function)
-    }
-}
-
-/// TODO: Add documentation
-fn compute_dists_from_node_coords<PointType: Send + Sync>(
+// TODO: Add documentation
+pub(super) fn compute_dists_from_node_coords<PointType: Send + Sync>(
     point_data: &[PointType],
     dimension: usize,
     distance_function: impl Fn(&PointType, &PointType) -> Distance + Sync + Send + Copy,
-) -> Matrix<Distance> {
+) -> SquareMatrix<Distance> {
     let total_size = dimension * dimension;
     let number_of_entries = (dimension * (dimension + 1)) / 2;
 
@@ -109,7 +96,7 @@ fn compute_dists_from_node_coords<PointType: Send + Sync>(
         }
     }
 
-    Matrix::new(distance_data, dimension)
+    SquareMatrix::new(distance_data, dimension)
 }
 
 #[inline(always)]

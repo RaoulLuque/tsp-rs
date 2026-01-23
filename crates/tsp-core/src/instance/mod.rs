@@ -4,7 +4,7 @@ use crate::{
     instance::{
         distance::Distance,
         edge::UnEdge,
-        matrix::{Matrix, MatrixSym},
+        matrix::{SquareMatrix, TriangularMatrix},
     },
     tsp_lib_spec::{
         DisplayDataType, EdgeDataFormat, EdgeWeightFormat, EdgeWeightType, NodeCoordType,
@@ -41,22 +41,22 @@ impl<DistanceContainer> TSPSymInstance<DistanceContainer> {
     }
 }
 
-impl TSPSymInstance<MatrixSym<Distance>> {
+impl TSPSymInstance<TriangularMatrix<Distance>> {
     pub fn raw_distances(&self) -> &[Distance] {
         self.distances.data()
     }
 
-    pub fn distance_matrix(&self) -> &MatrixSym<Distance> {
+    pub fn distance_matrix(&self) -> &TriangularMatrix<Distance> {
         &self.distances
     }
 }
 
-impl TSPSymInstance<Matrix<Distance>> {
+impl TSPSymInstance<SquareMatrix<Distance>> {
     pub fn raw_distances(&self) -> &[Distance] {
         self.distances.data()
     }
 
-    pub fn distance_matrix(&self) -> &Matrix<Distance> {
+    pub fn distance_matrix(&self) -> &SquareMatrix<Distance> {
         &self.distances
     }
 }

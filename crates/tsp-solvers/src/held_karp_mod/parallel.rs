@@ -8,7 +8,7 @@ use tsp_core::instance::{
     UnTour,
     distance::{Distance, ScaledDistance},
     edge::UnEdge,
-    matrix::Matrix,
+    matrix::SquareMatrix,
     node::Node,
 };
 
@@ -23,14 +23,14 @@ use crate::held_karp_mod::{
 ///
 /// For a detailed explanation of the algorithm, see the [module-level
 /// documentation][crate::held_karp_mod].
-pub fn held_karp_parallel(distances: &Matrix<Distance>) -> Option<UnTour> {
+pub fn held_karp_parallel(distances: &SquareMatrix<Distance>) -> Option<UnTour> {
     info!("Starting Held-Karp parallel solver for instance");
-    let mut edge_states = Matrix::new(
+    let mut edge_states = SquareMatrix::new(
         vec![EdgeState::Available; distances.data().len()],
         distances.dimension(),
     );
 
-    let scaled_distances = Matrix::new(
+    let scaled_distances = SquareMatrix::new(
         distances
             .data()
             .iter()
@@ -83,9 +83,9 @@ pub fn held_karp_parallel(distances: &Matrix<Distance>) -> Option<UnTour> {
 ///
 /// TODO: Summarize arguments in Held-Karp State Struct or Smth
 fn explore_node_new_thread(
-    distances: &Matrix<Distance>,
-    scaled_distances: &Matrix<ScaledDistance>,
-    edge_states: &mut Matrix<EdgeState>,
+    distances: &SquareMatrix<Distance>,
+    scaled_distances: &SquareMatrix<ScaledDistance>,
+    edge_states: &mut SquareMatrix<EdgeState>,
     node_penalties: &mut [ScaledDistance],
     fixed_degrees: &mut [u32],
     best_tour: Arc<Mutex<UnTour>>,
@@ -320,9 +320,9 @@ fn explore_node_new_thread(
 ///
 /// TODO: Summarize arguments in Held-Karp State Struct or Smth
 fn explore_node_parallel(
-    distances: &Matrix<Distance>,
-    scaled_distances: &Matrix<ScaledDistance>,
-    edge_states: &mut Matrix<EdgeState>,
+    distances: &SquareMatrix<Distance>,
+    scaled_distances: &SquareMatrix<ScaledDistance>,
+    edge_states: &mut SquareMatrix<EdgeState>,
     node_penalties: &mut [ScaledDistance],
     fixed_degrees: &mut [u32],
     best_tour: Arc<Mutex<UnTour>>,
@@ -449,9 +449,9 @@ enum LowerBoundOutput {
 
 /// Compute Held-Karp lower bound using 1-trees and Lagrangian relaxation
 fn held_karp_lower_bound_parallel(
-    distances: &Matrix<Distance>,
-    scaled_distances: &Matrix<ScaledDistance>,
-    edge_states: &Matrix<EdgeState>,
+    distances: &SquareMatrix<Distance>,
+    scaled_distances: &SquareMatrix<ScaledDistance>,
+    edge_states: &SquareMatrix<EdgeState>,
     node_penalties: &mut [ScaledDistance],
     best_tour: Arc<Mutex<UnTour>>,
     max_iterations: usize,

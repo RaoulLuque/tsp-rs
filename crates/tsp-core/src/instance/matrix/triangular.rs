@@ -1,18 +1,18 @@
 use std::fmt::Display;
 
-use crate::instance::{matrix::Matrix, node::Node};
+use crate::instance::{matrix::SquareMatrix, node::Node};
 
 /// A row-major lower-triangular matrix to store arbitrary symmetric edge data.
 ///
 /// The underlying data is guaranteed to have length dimension * (dimension + 1) / 2 where dimension
 /// is the number of nodes.
 #[derive(Debug, Clone)]
-pub struct MatrixSym<Data> {
+pub struct TriangularMatrix<Data> {
     data: Vec<Data>,
     dimension: usize,
 }
 
-impl<Data> MatrixSym<Data> {
+impl<Data> TriangularMatrix<Data> {
     /// Create a new EdgeDataMatrixSym from raw data and dimension.
     ///
     /// Panics if the length of data does not equal dimension * dimension.
@@ -70,11 +70,11 @@ impl<Data> MatrixSym<Data> {
             .map(|(from, to)| distance_function(from, to))
             .collect();
 
-        MatrixSym::new(data, dimension)
+        TriangularMatrix::new(data, dimension)
     }
 }
 
-impl<Data: Copy> MatrixSym<Data> {
+impl<Data: Copy> TriangularMatrix<Data> {
     /// Access the data at (from, to).
     ///
     /// It might be faster to use `get_data_from_bigger` or `get_data_to_bigger` if you know
@@ -105,7 +105,7 @@ impl<Data: Copy> MatrixSym<Data> {
 
     /// Convert to a non-symmetric [crate::instance::edge::data::EdgeDataMatrix] by duplicating the
     /// data.
-    pub fn to_edge_data_matrix(&self) -> Matrix<Data> {
+    pub fn to_edge_data_matrix(&self) -> SquareMatrix<Data> {
         let dimension = self.dimension;
         let mut data = vec![self.data[0].clone(); dimension * dimension];
         for row in 0..dimension {
@@ -115,19 +115,19 @@ impl<Data: Copy> MatrixSym<Data> {
                 data[column * self.dimension + row] = value;
             }
         }
-        Matrix::new(data, self.dimension)
+        SquareMatrix::new(data, self.dimension)
     }
 }
 
-impl<Data: Clone> MatrixSym<Data> {
+impl<Data: Clone> TriangularMatrix<Data> {
     /// Create a new EdgeDataMatrixSym from dimension, filling all entries with the given value.
     pub fn new_from_dimension_with_value(dimension: usize, value: Data) -> Self {
         let size = (dimension * (dimension + 1)) / 2;
-        MatrixSym::new(vec![value; size], dimension)
+        TriangularMatrix::new(vec![value; size], dimension)
     }
 }
 
-impl<Data: Display + Ord + Copy> Display for MatrixSym<Data> {
+impl<Data: Display + Ord + Copy> Display for TriangularMatrix<Data> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let max_value = self
             .data

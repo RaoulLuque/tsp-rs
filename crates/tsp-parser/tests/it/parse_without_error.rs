@@ -2,13 +2,13 @@ use std::any::Any;
 
 use tsp_core::instance::{
     distance::Distance,
-    matrix::{Matrix, MatrixSym},
+    matrix::{SquareMatrix, TriangularMatrix},
 };
 use tsp_macros::test_fn_on_all_instances;
 
 fn parse_instance_symmetric(path: &str) {
     let parsing_result = std::panic::catch_unwind(|| {
-        tsp_parser::parse_tsp_instance::<MatrixSym<Distance>>(path.to_owned())
+        tsp_parser::parse_tsp_instance::<TriangularMatrix<Distance>>(path.to_owned())
     });
     if let Err(err) = parsing_result {
         handle_error(err);
@@ -19,7 +19,7 @@ fn parse_instance_symmetric(path: &str) {
 
 fn parse_instance_non_symmetric(path: &str) {
     let parsing_result = std::panic::catch_unwind(|| {
-        tsp_parser::parse_tsp_instance::<Matrix<Distance>>(path.to_owned())
+        tsp_parser::parse_tsp_instance::<SquareMatrix<Distance>>(path.to_owned())
     });
     if let Err(err) = parsing_result {
         handle_error(err);

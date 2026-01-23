@@ -1,7 +1,7 @@
 use tsp_core::instance::{InstanceMetadata, distance::Distance};
 
-mod matrix;
-mod matrix_sym;
+mod square_matrix;
+mod triangular_matrix;
 
 pub trait ParseFromTSPLib {
     fn from_node_coord_section<PointType: Sync + Send>(

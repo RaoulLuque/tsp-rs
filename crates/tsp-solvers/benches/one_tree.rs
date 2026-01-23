@@ -2,15 +2,15 @@ use criterion::{BatchSize::SmallInput, Criterion, criterion_group, criterion_mai
 use tsp_core::instance::{
     TSPSymInstance,
     distance::{Distance, ScaledDistance},
-    matrix::Matrix,
+    matrix::SquareMatrix,
 };
 use tsp_parser::parse_tsp_instance;
 use tsp_solvers::held_karp_mod::{EdgeState, min_one_tree as min_one_tree_function};
 
 fn min_one_tree_benchmark(c: &mut Criterion) {
-    let tsp_instance: TSPSymInstance<Matrix<Distance>> =
+    let tsp_instance: TSPSymInstance<SquareMatrix<Distance>> =
         parse_tsp_instance("../../instances/tsplib_symmetric/a280.tsp").unwrap();
-    let scaled_distances = Matrix::new(
+    let scaled_distances = SquareMatrix::new(
         tsp_instance
             .distance_matrix()
             .data()
@@ -20,7 +20,7 @@ fn min_one_tree_benchmark(c: &mut Criterion) {
         tsp_instance.distance_matrix().dimension(),
     );
     let edge_states =
-        Matrix::new_from_dimension_with_value(scaled_distances.dimension(), EdgeState::Available);
+        SquareMatrix::new_from_dimension_with_value(scaled_distances.dimension(), EdgeState::Available);
     let node_penalties = vec![ScaledDistance(0); scaled_distances.dimension()];
 
     c.bench_function("Compute min one tree", |b| {

@@ -1,5 +1,5 @@
 use tsp_core::instance::{
-    TSPSymInstance, UnTour, distance::Distance, edge::UnEdge, matrix::Matrix, node::Node,
+    TSPSymInstance, UnTour, distance::Distance, edge::UnEdge, matrix::SquareMatrix, node::Node,
 };
 use tsp_solvers::held_karp;
 
@@ -7,7 +7,7 @@ mod held_karp_correct_length;
 
 #[test]
 fn test_held_karp_on_12() {
-    let tsp_instance: TSPSymInstance<Matrix<Distance>> =
+    let tsp_instance: TSPSymInstance<SquareMatrix<Distance>> =
         tsp_parser::parse_tsp_instance("../../instances/tsp_rust/12.tsp").unwrap();
     let best_tour = held_karp(&tsp_instance.distance_matrix()).unwrap();
     let edges = vec![

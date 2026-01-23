@@ -1,8 +1,8 @@
-use tsp_core::instance::{TSPSymInstance, distance::Distance, matrix::Matrix};
+use tsp_core::instance::{TSPSymInstance, distance::Distance, matrix::SquareMatrix};
 use tsp_solvers::held_karp;
 
 fn check_correct_length_for_held_karp(instance_path: &str) {
-    let tsp_instance: TSPSymInstance<Matrix<Distance>> =
+    let tsp_instance: TSPSymInstance<SquareMatrix<Distance>> =
         tsp_parser::parse_tsp_instance(instance_path).unwrap();
     let best_tour = held_karp(&tsp_instance.distance_matrix()).unwrap();
     let length = find_length_in_golden_file(instance_path);

@@ -7,15 +7,15 @@ use std::{
 use tsp_core::instance::{
     TSPSymInstance,
     distance::Distance,
-    matrix::{Matrix, MatrixSym},
+    matrix::{SquareMatrix, TriangularMatrix},
     node::Node,
 };
 
 fn check_input_file_against_golden_file(file_name: &str) {
-    let input_instance_sym: TSPSymInstance<MatrixSym<Distance>> =
+    let input_instance_sym: TSPSymInstance<TriangularMatrix<Distance>> =
         tsp_parser::parse_tsp_instance("../../instances/".to_owned() + file_name + ".tsp")
             .expect("Symmetric parsing should succeed");
-    let input_instance_matrix: TSPSymInstance<Matrix<Distance>> =
+    let input_instance_matrix: TSPSymInstance<SquareMatrix<Distance>> =
         tsp_parser::parse_tsp_instance("../../instances/".to_owned() + file_name + ".tsp")
             .expect("Matrix parsing should succeed");
     let golden_distance_data = BufReader::new(

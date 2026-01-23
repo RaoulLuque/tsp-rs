@@ -1,30 +1,19 @@
 use tsp_core::instance::{
-    InstanceMetadata,
     distance::Distance,
-    matrix::{MatrixSym, get_lower_triangle_matrix_entry_row_bigger},
+    matrix::{TriangularMatrix, get_lower_triangle_matrix_entry_row_bigger},
 };
 
-use super::ParseFromTSPLib;
 use crate::distance_container::find_row_column_from_lower_triangle_index;
 
 // TODO: Add more fine grained benchmarks to determine optimal parallelism bound
 const PARALLELISM_BOUND: usize = 300_000;
 
-impl ParseFromTSPLib for MatrixSym<Distance> {
-    fn from_node_coord_section<PointType: Sync + Send>(
-        node_data: &Vec<PointType>,
-        metadata: &InstanceMetadata,
-        distance_function: impl Fn(&PointType, &PointType) -> Distance + Sync + Send + Copy,
-    ) -> Self {
-        compute_dists_from_node_coords(&node_data, metadata.dimension, distance_function)
-    }
-}
-
-fn compute_dists_from_node_coords<PointType: Send + Sync>(
+// TODO: Add documentation
+pub(super) fn compute_dists_from_node_coords<PointType: Send + Sync>(
     point_data: &[PointType],
     dimension: usize,
     distance_function: impl Fn(&PointType, &PointType) -> Distance + Sync + Send + Copy,
-) -> MatrixSym<Distance> {
+) -> TriangularMatrix<Distance> {
     let total_size = dimension * (dimension + 1) / 2;
 
     let mut distance_data = vec![Distance(0); total_size];
@@ -53,7 +42,7 @@ fn compute_dists_from_node_coords<PointType: Send + Sync>(
         });
     }
 
-    MatrixSym::new(distance_data, dimension)
+    TriangularMatrix::new(distance_data, dimension)
 }
 
 #[inline(always)]

@@ -1,6 +1,6 @@
 use concorde_rs::solver::tsp_hk;
 use criterion::{Criterion, criterion_group, criterion_main};
-use tsp_core::instance::{distance::Distance, matrix::MatrixSym};
+use tsp_core::instance::{distance::Distance, matrix::TriangularMatrix};
 use tsp_parser::parse_tsp_instance;
 use tsp_solvers::held_karp;
 

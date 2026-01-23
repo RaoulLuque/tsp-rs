@@ -1,6 +1,6 @@
 use tsp_core::instance::{
     distance::Distance,
-    matrix::{Matrix, MatrixSym},
+    matrix::{SquareMatrix, TriangularMatrix},
 };
 use tsp_macros::test_fn_on_all_instances;
 
@@ -23,10 +23,12 @@ fn check_against_canonical_tour_length(instance_path: &str) {
                 .expect("Golden file should contain a valid distance"),
         );
 
-        let tsp_instance_sym = tsp_parser::parse_tsp_instance::<MatrixSym<Distance>>(instance_path)
-            .expect("Failed to parse TSP instance");
-        let tsp_instance_matrix = tsp_parser::parse_tsp_instance::<Matrix<Distance>>(instance_path)
-            .expect("Failed to parse TSP instance");
+        let tsp_instance_sym =
+            tsp_parser::parse_tsp_instance::<TriangularMatrix<Distance>>(instance_path)
+                .expect("Failed to parse TSP instance");
+        let tsp_instance_matrix =
+            tsp_parser::parse_tsp_instance::<SquareMatrix<Distance>>(instance_path)
+                .expect("Failed to parse TSP instance");
 
         let mut len_sym = Distance(0);
         let mut len_matrix = Distance(0);
