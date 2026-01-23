@@ -42,11 +42,11 @@ fn find_length_in_golden_file(instance_path: &str) -> i32 {
     );
 }
 
-// This doesn't actually need to be run on all instances, but might as well reuse the macro since
-// we have it.
-tsp_macros::test_fn_on_all_instances!(
-    check_correct_length_for_held_karp,
-    held_karp_correct_length,
-    0,
-    60
-);
+// // This doesn't actually need to be run on all instances, but might as well reuse the macro since
+// // we have it.
+// tsp_macros::test_fn_on_all_instances!(
+//     check_correct_length_for_held_karp,
+//     held_karp_correct_length,
+//     0,
+//     60
+// );

@@ -16,7 +16,7 @@ pub(super) fn parse_dists_from_full_matrix(
         index_in_map,
         &mut (&mut res_data, &mut current_line_number),
         |line: &str, (res, current_line_number): &mut (&mut Vec<Distance>, &mut usize)| {
-            parse_line_into_distances(res, line, current_line_number, dimension)
+            parse_full_line_into_distances(res, line, current_line_number, dimension)
         },
         |(_, current_line_number): &(&mut Vec<Distance>, &mut usize)| {
             **current_line_number >= dimension
@@ -37,7 +37,7 @@ pub(super) fn parse_dists_from_full_matrix(
 /// For the last line, for performance reasons it parses only up to dimension - 1 distances, that
 /// is, the distance from the last node to the last node is not added to the matrix data (hint: it's
 /// always zero).
-fn parse_line_into_distances(
+fn parse_full_line_into_distances(
     matrix_data: &mut Vec<Distance>,
     line: &str,
     line_number: &mut usize,
@@ -92,6 +92,6 @@ fn parse_line_into_distances(
 fn parse_distance_from_str(s: &str) -> Distance {
     let parsed_value: i32 = s
         .parse()
-        .expect("Failed to parse distance value from explicit matrix section.");
+        .expect("Entries in explicit matrix section should be valid integers.");
     Distance(parsed_value)
 }

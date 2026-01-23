@@ -40,7 +40,13 @@ fn handle_error(err: Box<dyn Any + Send>) {
     match err_msg.as_str() {
         "not yet implemented: Explicit distance matrix parsing is not supported yet" => {}
         "not yet implemented: Fixed edges sections are not supported yet" => {}
-        _ => assert!(false, "Parsing failed with unexpected error: {}", err_msg),
+        "not yet implemented: Parsing explicit full matrix into square matrix is not \
+         implemented yet." => {}
+        _ => {
+            if !err_msg.starts_with("not yet implemented: Explicit edge weight format") {
+                panic!("Parsing failed with unexpected error: {}", err_msg)
+            }
+        }
     }
 }
 

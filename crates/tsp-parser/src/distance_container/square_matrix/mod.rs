@@ -19,6 +19,6 @@ impl ParseFromTSPLib for SquareMatrix<Distance> {
         index_in_map: &mut usize,
         metadata: &InstanceMetadata,
     ) -> Self {
-        unimplemented!("Parsing explicit full matrix into square matrix is not implemented yet.")
+        todo!("Parsing explicit full matrix into square matrix is not implemented yet.")
     }
 }

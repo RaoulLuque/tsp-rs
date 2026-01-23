@@ -112,7 +112,7 @@ pub fn parse_data_sections<DistanceContainer: ParseFromTSPLib>(
                     metadata,
                 ),
                 None => todo!("Handle error"),
-                _ => unimplemented!(
+                _ => todo!(
                     "Explicit edge weight format {:?} is not yet implemented",
                     metadata.edge_weight_format
                 ),

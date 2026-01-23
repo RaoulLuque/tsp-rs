@@ -23,8 +23,8 @@ fn main() {
     let tsp_instance_as_integer =
         TriangularMatrix::<u32>::new(dists_as_integer, tsp_instance.metadata().dimension);
     println!(
-        "TSP Instance as integer Parsed: {}",
-        tsp_instance_as_integer
+        "TSP Instance as integer Parsed: {:?}",
+        tsp_instance_as_integer.data()
     );
     // let best_tour = held_karp(tsp_instance.distance_matrix());
     // if let Some(best_tour) = &best_tour {
