@@ -112,16 +112,18 @@ pub fn parse_data_sections<DistanceContainer: ParseFromTSPLib>(
     }
 }
 
-fn parse_2d_node_coord_section(
+/// Loops over lines in the file content starting from the given index,
+/// applying the provided line parser function to each line and a mutable context.
+///
+/// Helper function to reduce code duplication when parsing sections.
+#[inline]
+pub(crate) fn loop_over_lines<Context>(
     file_content: &FileContent,
     index_in_map: &mut usize,
-    metadata: &InstanceMetadata,
-) -> Vec<Point2D> {
-    let mut point_data: Vec<Point2D> = Vec::with_capacity(metadata.dimension);
-
-    // Read a line to test if the point data is floating point or integer
-    let is_float_data = is_float_data(file_content, index_in_map);
-
+    context: &mut Context,
+    line_parser: impl Fn(&str, &mut Context),
+    break_condition: impl Fn(&Context) -> bool,
+) {
     while let Some(index_newline) = memchr(b'\n', &file_content[*index_in_map..]) {
         let line = &file_content[*index_in_map..*index_in_map + index_newline];
         // SAFETY: The TSP instance file is expected to be valid UTF-8
@@ -132,14 +134,34 @@ fn parse_2d_node_coord_section(
         *index_in_map += index_newline + 1;
 
         // Check if end of file is reached
-        if line_str == "EOF" || line_str.is_empty() {
+        if line_str == "EOF" || line_str.is_empty() || break_condition(context) {
             break;
         }
 
-        let point = parse_line_to_2d_point(line_str, is_float_data);
-
-        point_data.push(point);
+        line_parser(line_str, context);
     }
+}
+
+fn parse_2d_node_coord_section(
+    file_content: &FileContent,
+    index_in_map: &mut usize,
+    metadata: &InstanceMetadata,
+) -> Vec<Point2D> {
+    let mut point_data: Vec<Point2D> = Vec::with_capacity(metadata.dimension);
+
+    // Read a line to test if the point data is floating point or integer
+    let is_float_data = is_float_data(file_content, index_in_map);
+
+    loop_over_lines(
+        file_content,
+        index_in_map,
+        &mut point_data,
+        |line_str, point_data| {
+            let point = parse_line_to_2d_point(line_str, is_float_data);
+            point_data.push(point);
+        },
+        |_| false,
+    );
 
     point_data
 }
@@ -154,23 +176,16 @@ fn parse_3d_node_coord_section(
     // Read a line to test if the point data is floating point or integer
     let is_float_data = is_float_data(file_content, index_in_map);
 
-    while let Some(index_newline) = memchr(b'\n', &file_content[*index_in_map..]) {
-        let line = &file_content[*index_in_map..*index_in_map + index_newline];
-        // SAFETY: The TSP instance file is expected to be valid UTF-8
-        let line_str = unsafe { std::str::from_utf8_unchecked(line) };
-
-        // Move the index to the start of the next line (+1 for the newline character)
-        *index_in_map += index_newline + 1;
-
-        // Check if end of file is reached
-        if line_str == "EOF" {
-            break;
-        }
-
-        let point = parse_line_to_3d_point(line_str, is_float_data);
-
-        point_data.push(point);
-    }
+    loop_over_lines(
+        file_content,
+        index_in_map,
+        &mut point_data,
+        |line_str, point_data| {
+            let point = parse_line_to_3d_point(line_str, is_float_data);
+            point_data.push(point);
+        },
+        |_| false,
+    );
 
     point_data
 }
