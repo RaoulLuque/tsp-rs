@@ -1,5 +1,7 @@
 use tsp_core::instance::{InstanceMetadata, distance::Distance};
 
+use crate::FileContent;
+
 mod square_matrix;
 mod triangular_matrix;
 
@@ -8,6 +10,12 @@ pub trait ParseFromTSPLib {
         node_data: &Vec<PointType>,
         metadata: &InstanceMetadata,
         distance_function: impl Fn(&PointType, &PointType) -> Distance + Sync + Send + Copy,
+    ) -> Self;
+
+    fn from_explicit_full_matrix_section(
+        data: &FileContent,
+        index_in_map: &mut usize,
+        metadata: &InstanceMetadata,
     ) -> Self;
 }
 

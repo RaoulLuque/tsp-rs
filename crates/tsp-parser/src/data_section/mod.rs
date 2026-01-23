@@ -42,10 +42,12 @@ pub struct GeoPoint {
     pub longitude: f64,
 }
 
+// The index_in_map is expected to point to the beginning of the data section. That is column 0
+// of the first line of the data section.
 pub fn parse_data_sections<DistanceContainer: ParseFromTSPLib>(
     file_content: &FileContent,
     index_in_map: &mut usize,
-    data_keyword: TSPDataKeyword,
+    _data_keyword: TSPDataKeyword,
     metadata: &InstanceMetadata,
 ) -> DistanceContainer {
     match metadata.edge_weight_type {
@@ -102,8 +104,19 @@ pub fn parse_data_sections<DistanceContainer: ParseFromTSPLib>(
             DistanceContainer::from_node_coord_section(&node_data, metadata, distance_function)
         }
         EdgeWeightType::EXPLICIT => {
-            // TODO: Implement explicit distance matrix parsing
-            todo!("Explicit distance matrix parsing is not supported yet");
+            use tsp_core::tsp_lib_spec::EdgeWeightFormat::*;
+            match metadata.edge_weight_format {
+                Some(FULL_MATRIX) => DistanceContainer::from_explicit_full_matrix_section(
+                    file_content,
+                    index_in_map,
+                    metadata,
+                ),
+                None => todo!("Handle error"),
+                _ => unimplemented!(
+                    "Explicit edge weight format {:?} is not yet implemented",
+                    metadata.edge_weight_format
+                ),
+            }
         }
         _ => unimplemented!(
             "Node coordinate type {:?} is not yet implemented",

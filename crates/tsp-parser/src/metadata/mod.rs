@@ -46,7 +46,7 @@ pub enum MetaDataParseError {
 ///
 /// Returns a tuple containing the parsed `InstanceMetadata`, the first encountered
 /// `TSPDataKeyword`, and a reference to the remaining lines iterator starting from the data section
-/// (the line after the first data keyword).
+/// (the line after the returned `TSPDataKeyword`).
 pub fn parse_metadata(
     file_content: &FileContent,
     index_in_map: &mut usize,
