@@ -12,8 +12,7 @@ This repository contains different crates for solving the [Traveling Salesperson
   by David L. Applegate, Robert E. Bixby, Vasek Chvatal, and William J. Cook.
   This book provides an in-depth treatment of various TSP algorithms.
 - [Concorde TSP Solver](https://www.math.uwaterloo.ca/tsp/concorde.html): The Concorde TSP solver
-  is a well-known implementation of TSP algorithms. The implementations in this repository are inspired
-  by the techniques used in Concorde.
+  is a well-known implementation of TSP algorithms.
 
 ## License
 
