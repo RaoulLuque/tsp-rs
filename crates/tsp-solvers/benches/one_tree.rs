@@ -8,8 +8,17 @@ use tsp_parser::parse_tsp_instance;
 use tsp_solvers::held_karp_mod::{EdgeState, min_one_tree as min_one_tree_function};
 
 fn min_one_tree_benchmark(c: &mut Criterion) {
+    let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("instances")
+        .join("tsplib_symmetric")
+        .join("a280.tsp");
+
     let tsp_instance: TSPSymInstance<SquareMatrix<Distance>> =
-        parse_tsp_instance("../../instances/tsplib_symmetric/a280.tsp").unwrap();
+        parse_tsp_instance(path.to_str().unwrap()).unwrap();
     let scaled_distances = SquareMatrix::new(
         tsp_instance
             .distance_matrix()
@@ -19,8 +28,10 @@ fn min_one_tree_benchmark(c: &mut Criterion) {
             .collect::<Vec<_>>(),
         tsp_instance.distance_matrix().dimension(),
     );
-    let edge_states =
-        SquareMatrix::new_from_dimension_with_value(scaled_distances.dimension(), EdgeState::Available);
+    let edge_states = SquareMatrix::new_from_dimension_with_value(
+        scaled_distances.dimension(),
+        EdgeState::Available,
+    );
     let node_penalties = vec![ScaledDistance(0); scaled_distances.dimension()];
 
     c.bench_function("Compute min one tree", |b| {

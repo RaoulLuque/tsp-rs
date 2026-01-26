@@ -5,13 +5,17 @@ use tsp_parser::parse_tsp_instance;
 macro_rules! create_parse_benchmark_square {
     ($file_path:expr, $name_square:ident, $name_group:ident) => {
         fn $name_square(c: &mut Criterion) {
+            let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .parent()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .join("instances")
+                .join($file_path);
+
             c.bench_function(concat!("Parse \"", $file_path, "\" into square"), |b| {
                 b.iter(|| {
-                    parse_tsp_instance::<SquareMatrix<Distance>>(concat!(
-                        "../../instances/",
-                        $file_path,
-                    ))
-                    .unwrap()
+                    parse_tsp_instance::<SquareMatrix<Distance>>(path.to_str().unwrap()).unwrap()
                 })
             });
         }

@@ -7,9 +7,17 @@ fn att48_parallel(c: &mut Criterion) {
     let mut group = c.benchmark_group("held_karp_parallel");
     group.sample_size(10);
 
+    let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("instances")
+        .join("tsplib_symmetric")
+        .join("att48.tsp");
+
     let tsp_instance =
-        parse_tsp_instance::<TriangularMatrix<Distance>>("../../instances/tsplib_symmetric/att48.tsp")
-            .unwrap();
+        parse_tsp_instance::<TriangularMatrix<Distance>>(path.to_str().unwrap()).unwrap();
     let non_symmetric_matrix = tsp_instance.distance_matrix().to_edge_data_matrix();
 
     group.bench_function("Held Karp Parallel: att48.tsp", |b| {
@@ -22,9 +30,17 @@ fn berlin52_parallel(c: &mut Criterion) {
     let mut group = c.benchmark_group("held_karp_parallel");
     group.sample_size(10);
 
+    let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("instances")
+        .join("tsplib_symmetric")
+        .join("berlin52.tsp");
+
     let tsp_instance =
-        parse_tsp_instance::<TriangularMatrix<Distance>>("../../instances/tsplib_symmetric/berlin52.tsp")
-            .unwrap();
+        parse_tsp_instance::<TriangularMatrix<Distance>>(path.to_str().unwrap()).unwrap();
     let non_symmetric_matrix = tsp_instance.distance_matrix().to_edge_data_matrix();
 
     group.bench_function("Held Karp Parallel: berlin52.tsp", |b| {

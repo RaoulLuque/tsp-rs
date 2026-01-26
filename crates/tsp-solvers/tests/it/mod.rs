@@ -7,8 +7,17 @@ mod held_karp_correct_length;
 
 #[test]
 fn test_held_karp_on_12() {
+    let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("instances")
+        .join("tsp_rust")
+        .join("12.tsp");
+
     let tsp_instance: TSPSymInstance<SquareMatrix<Distance>> =
-        tsp_parser::parse_tsp_instance("../../instances/tsp_rust/12.tsp").unwrap();
+        tsp_parser::parse_tsp_instance(path.to_str().unwrap()).unwrap();
     let best_tour = held_karp(&tsp_instance.distance_matrix()).unwrap();
     let edges = vec![
         UnEdge {

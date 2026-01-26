@@ -9,8 +9,14 @@ pub fn test_fn_on_all_instances(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input with parse_macro_input_args);
     let (fn_name, test_name, lower_bound, upper_bound) = input;
 
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
-    let instances_dir = std::path::Path::new(&manifest_dir).join("../../instances");
+    let manifest_dir =
+        std::path::Path::new(&std::env::var("CARGO_MANIFEST_DIR").unwrap()).to_owned();
+    let instances_dir = manifest_dir
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("instances");
 
     let mut test_functions = Vec::new();
 
@@ -18,10 +24,6 @@ pub fn test_fn_on_all_instances(input: TokenStream) -> TokenStream {
     let instances_contents = std::fs::read_dir(&instances_dir).unwrap();
     for entry in instances_contents.flatten() {
         let subdir_path = entry.path();
-        let subdir_name = subdir_path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("");
 
         // Iterate over .tsp files in current subdirectory
         let subdir_contents = std::fs::read_dir(&subdir_path).unwrap();
@@ -40,7 +42,17 @@ pub fn test_fn_on_all_instances(input: TokenStream) -> TokenStream {
                 let num = extract_number_from_filename(filename).unwrap();
                 if lower_bound <= num && num <= upper_bound {
                     // Generate test
-                    let relative_path = format!("../../instances/{}/{}.tsp", subdir_name, filename);
+                    let relative_path = manifest_dir
+                        .parent()
+                        .unwrap()
+                        .parent()
+                        .unwrap()
+                        .join("instances")
+                        .join(subdir_path.file_name().unwrap())
+                        .join(format!("{}.tsp", filename))
+                        .to_owned()
+                        .display()
+                        .to_string();
 
                     let test_fn_name = format!("{}_{}_macro", test_name, filename);
                     let test_fn_ident =

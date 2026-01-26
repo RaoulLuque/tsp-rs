@@ -7,9 +7,16 @@ use tsp_solvers::held_karp;
 macro_rules! create_held_karp_benchmarks {
     ($file_path:expr, $name_concorde:ident, $name_own:ident) => {
         fn $name_concorde(c: &mut Criterion) {
+            let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .parent()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .join("instances")
+                .join($file_path);
+
             let tsp_instance =
-                parse_tsp_instance::<MatrixSym<Distance>>(concat!("../../instances/", $file_path))
-                    .unwrap();
+                parse_tsp_instance::<TriangularMatrix<Distance>>(path.to_str().unwrap()).unwrap();
             let lower_distance_matrix = concorde_rs::LowerDistanceMatrix {
                 num_nodes: tsp_instance.metadata().dimension as u32,
                 values: tsp_instance
@@ -25,9 +32,16 @@ macro_rules! create_held_karp_benchmarks {
         }
 
         fn $name_own(c: &mut Criterion) {
+            let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .parent()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .join("instances")
+                .join($file_path);
+
             let tsp_instance =
-                parse_tsp_instance::<MatrixSym<Distance>>(concat!("../../instances/", $file_path))
-                    .unwrap();
+                parse_tsp_instance::<TriangularMatrix<Distance>>(path.to_str().unwrap()).unwrap();
             let non_symmetric_matrix = tsp_instance.distance_matrix().to_edge_data_matrix();
 
             c.bench_function(
