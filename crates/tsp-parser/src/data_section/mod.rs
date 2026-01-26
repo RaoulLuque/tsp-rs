@@ -111,6 +111,26 @@ pub fn parse_data_sections<DistanceContainer: ParseFromTSPLib>(
                     index_in_map,
                     metadata,
                 ),
+                Some(UPPER_ROW) => DistanceContainer::from_explicit_upper_row_section(
+                    file_content,
+                    index_in_map,
+                    metadata,
+                ),
+                Some(LOWER_ROW) => DistanceContainer::from_explicit_lower_row_section(
+                    file_content,
+                    index_in_map,
+                    metadata,
+                ),
+                Some(UPPER_DIAG_ROW) => DistanceContainer::from_explicit_upper_diag_row_section(
+                    file_content,
+                    index_in_map,
+                    metadata,
+                ),
+                Some(LOWER_DIAG_ROW) => DistanceContainer::from_explicit_lower_diag_row_section(
+                    file_content,
+                    index_in_map,
+                    metadata,
+                ),
                 None => todo!("Handle error"),
                 _ => todo!(
                     "Explicit edge weight format {:?} is not yet implemented",

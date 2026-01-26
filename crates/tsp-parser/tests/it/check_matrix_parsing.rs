@@ -45,6 +45,10 @@ fn check_input_file_against_golden_file(instance_path: &str) {
             golden_distance_data.len(),
             input_instance_sym.raw_distances().len()
         );
+        println!(
+            "Symmetric Matrix: \n{}",
+            input_instance_sym.distance_matrix()
+        );
         for (i, &distance) in golden_distance_data.iter().enumerate() {
             assert_eq!(
                 distance,
@@ -55,10 +59,6 @@ fn check_input_file_against_golden_file(instance_path: &str) {
                 input_instance_sym.raw_distances()[i]
             );
         }
-        println!(
-            "Symmetric Matrix: \n{}",
-            input_instance_sym.distance_matrix()
-        );
         // println!("Matrix: \n{}", input_instance_matrix.distance_matrix());
         // assert_eq!(input_instance_sym.raw_distances(), golden_distance_data);
         // for row in 0..input_instance_matrix.distance_matrix().dimension() {

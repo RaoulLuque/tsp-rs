@@ -19,6 +19,38 @@ impl ParseFromTSPLib for SquareMatrix<Distance> {
         index_in_map: &mut usize,
         metadata: &InstanceMetadata,
     ) -> Self {
-        todo!("Parsing explicit full matrix into square matrix is not implemented yet.")
+        todo!("Explicit edge weight format FULL_MATRIX is not supported yet")
+    }
+
+    fn from_explicit_upper_row_section(
+        data: &FileContent,
+        index_in_map: &mut usize,
+        metadata: &InstanceMetadata,
+    ) -> Self {
+        todo!("Explicit edge weight format UPPER_ROW is not supported yet")
+    }
+
+    fn from_explicit_lower_row_section(
+        data: &FileContent,
+        index_in_map: &mut usize,
+        metadata: &InstanceMetadata,
+    ) -> Self {
+        todo!("Explicit edge weight format LOWER_ROW is not supported yet")
+    }
+
+    fn from_explicit_upper_diag_row_section(
+        data: &FileContent,
+        index_in_map: &mut usize,
+        metadata: &InstanceMetadata,
+    ) -> Self {
+        todo!("Explicit edge weight format UPPER_DIAG_ROW is not supported yet")
+    }
+
+    fn from_explicit_lower_diag_row_section(
+        data: &FileContent,
+        index_in_map: &mut usize,
+        metadata: &InstanceMetadata,
+    ) -> Self {
+        todo!("Explicit edge weight format LOWER_DIAG_ROW is not supported yet")
     }
 }
