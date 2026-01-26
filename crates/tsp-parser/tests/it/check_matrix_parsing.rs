@@ -13,10 +13,7 @@ use tsp_core::instance::{
 use tsp_macros::test_fn_on_all_instances;
 
 fn check_input_file_against_golden_file(instance_path: &str) {
-    let Some(golden_distance_data) = parse_golden_file_square_matrix(instance_path) else {
-        // If there's no golden file, we can't check anything.
-        return;
-    };
+    let golden_distance_data = parse_golden_file_square_matrix(instance_path).expect("");
 
     let parsed_triangular_matrix: TSPSymInstance<TriangularMatrix<Distance>> =
         tsp_parser::parse_tsp_instance(instance_path).expect("Symmetric parsing should succeed");
@@ -103,5 +100,5 @@ test_fn_on_all_instances!(
     check_input_file_against_golden_file,
     check_matrix_parsing,
     0,
-    550
+    100
 );
