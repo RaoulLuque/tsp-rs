@@ -2,7 +2,14 @@ use node_coord::compute_dists_from_node_coords;
 use tsp_core::instance::{InstanceMetadata, distance::Distance, matrix::SquareMatrix};
 
 use super::ParseFromTSPLib;
-use crate::FileContent;
+use crate::{
+    FileContent,
+    distance_container::square_matrix::explicit::{
+        parse_dists_from_full_matrix, parse_dists_from_lower_row, parse_dists_from_upper_row,
+    },
+};
+
+mod explicit;
 mod node_coord;
 
 impl ParseFromTSPLib for SquareMatrix<Distance> {
@@ -19,7 +26,7 @@ impl ParseFromTSPLib for SquareMatrix<Distance> {
         index_in_map: &mut usize,
         metadata: &InstanceMetadata,
     ) -> Self {
-        todo!("Explicit edge weight format FULL_MATRIX is not supported yet")
+        parse_dists_from_full_matrix(data, index_in_map, metadata.dimension)
     }
 
     fn from_explicit_upper_row_section(
@@ -27,7 +34,7 @@ impl ParseFromTSPLib for SquareMatrix<Distance> {
         index_in_map: &mut usize,
         metadata: &InstanceMetadata,
     ) -> Self {
-        todo!("Explicit edge weight format UPPER_ROW is not supported yet")
+        parse_dists_from_upper_row(data, index_in_map, metadata.dimension, false)
     }
 
     fn from_explicit_lower_row_section(
@@ -35,7 +42,7 @@ impl ParseFromTSPLib for SquareMatrix<Distance> {
         index_in_map: &mut usize,
         metadata: &InstanceMetadata,
     ) -> Self {
-        todo!("Explicit edge weight format LOWER_ROW is not supported yet")
+        parse_dists_from_lower_row(data, index_in_map, metadata.dimension, false)
     }
 
     fn from_explicit_upper_diag_row_section(
@@ -43,7 +50,7 @@ impl ParseFromTSPLib for SquareMatrix<Distance> {
         index_in_map: &mut usize,
         metadata: &InstanceMetadata,
     ) -> Self {
-        todo!("Explicit edge weight format UPPER_DIAG_ROW is not supported yet")
+        parse_dists_from_upper_row(data, index_in_map, metadata.dimension, true)
     }
 
     fn from_explicit_lower_diag_row_section(
@@ -51,6 +58,6 @@ impl ParseFromTSPLib for SquareMatrix<Distance> {
         index_in_map: &mut usize,
         metadata: &InstanceMetadata,
     ) -> Self {
-        todo!("Explicit edge weight format LOWER_DIAG_ROW is not supported yet")
+        parse_dists_from_lower_row(data, index_in_map, metadata.dimension, true)
     }
 }

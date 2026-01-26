@@ -193,7 +193,6 @@ fn explore_node_new_thread(
                 // Try exploring the branch including the edge.
                 // That is, we might not be able to explore this branch, if we the edge inclusion
                 // would violate the already fixed degrees / edges.
-                // println!("Exploring inclusion at depth {}", depth);
                 edge_states.set_data_symmetric(
                     branching_edge.from,
                     branching_edge.to,
@@ -224,7 +223,7 @@ fn explore_node_new_thread(
                 fixed_degrees[branching_edge.from.0] -= 1;
                 fixed_degrees[branching_edge.to.0] -= 1;
             });
-            
+
             // Decrement the thread count
             *threads_spawned.lock().unwrap() -= 1;
         } else {

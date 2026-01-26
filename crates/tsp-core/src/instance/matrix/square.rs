@@ -130,7 +130,6 @@ impl<Data: Display + Ord + Copy> Display for SquareMatrix<Data> {
             .max()
             .expect("Matrix should have at least one entry for display");
         let max_len = format!("{}", max_value).len();
-        println!("Max len   : {}", max_len);
         for row in 0..self.dimension {
             for column in 0..self.dimension {
                 let value = self.get_data(Node(row), Node(column));

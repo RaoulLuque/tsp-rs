@@ -64,7 +64,6 @@ pub fn parse_metadata(
                 &file_content[*index_in_map..*index_in_map + index_newline],
             )
         };
-        // println!("Parsing line: {}", line);
 
         // Move the index to the start of the next line (+1 for the newline character)
         *index_in_map += index_newline + 1;
