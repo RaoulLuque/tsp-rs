@@ -216,8 +216,10 @@ mod tests {
     fn test_min_spanning_tree_excluded_infeasible() {
         let distance_matrix = SquareMatrix::new_from_dimension_with_value(10, ScaledDistance(0));
         let penalties = vec![ScaledDistance(0); 10];
-        let edge_states =
-            SquareMatrix::new_from_dimension_with_value(distance_matrix.dimension(), EdgeState::Excluded);
+        let edge_states = SquareMatrix::new_from_dimension_with_value(
+            distance_matrix.dimension(),
+            EdgeState::Excluded,
+        );
         let (_, distance_matrix_rest) = distance_matrix.split_first_row();
         let (_, edge_states_rest) = edge_states.split_first_row();
 
@@ -228,7 +230,8 @@ mod tests {
     #[test]
     fn test_min_spanning_tree_infeasible_node_isolated() {
         let dimension = 6;
-        let distance_matrix = SquareMatrix::new_from_dimension_with_value(dimension, ScaledDistance(0));
+        let distance_matrix =
+            SquareMatrix::new_from_dimension_with_value(dimension, ScaledDistance(0));
         let penalties = vec![ScaledDistance(0); dimension];
         let mut edge_states =
             SquareMatrix::new_from_dimension_with_value(dimension, EdgeState::Available);
@@ -254,7 +257,8 @@ mod tests {
     #[test]
     fn test_min_spanning_tree_fixed() {
         let dimension = 6;
-        let distance_matrix = SquareMatrix::new_from_dimension_with_value(dimension, ScaledDistance(0));
+        let distance_matrix =
+            SquareMatrix::new_from_dimension_with_value(dimension, ScaledDistance(0));
         let penalties = vec![ScaledDistance(0); dimension];
         let mut edge_states =
             SquareMatrix::new_from_dimension_with_value(dimension, EdgeState::Available);
