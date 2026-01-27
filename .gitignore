@@ -11,8 +11,11 @@ flamegraph.svg
 perf*
 
 # Logs
-output.txt
+*.txt
 *.sol
+*.sav
+*.pul
+*.mas
 
 # Temp
 /logo
