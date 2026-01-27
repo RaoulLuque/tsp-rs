@@ -36,16 +36,17 @@ pub fn min_one_tree(
         match edge_states_zero[node_index] {
             EdgeState::Excluded => continue,
             EdgeState::Available => {
-                if distance < dist_cheapest_edge_a {
+                let adjusted_distance = distance - penalties[0] - penalties[node_index];
+                if adjusted_distance < dist_cheapest_edge_a {
                     // Assign new value to cheapest edge a, and move previous a to b
                     // (because of the invariant)
                     dist_cheapest_edge_b = dist_cheapest_edge_a;
                     cheapest_neighbor_b = cheapest_neighbor_a;
-                    dist_cheapest_edge_a = distance;
+                    dist_cheapest_edge_a = adjusted_distance;
                     cheapest_neighbor_a = Some(node);
-                } else if distance < dist_cheapest_edge_b {
+                } else if adjusted_distance < dist_cheapest_edge_b {
                     // Cheaper than b but not a, so just update b
-                    dist_cheapest_edge_b = distance;
+                    dist_cheapest_edge_b = adjusted_distance;
                     cheapest_neighbor_b = Some(node);
                 }
             }
