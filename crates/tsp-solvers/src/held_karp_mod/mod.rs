@@ -94,6 +94,9 @@ pub use crate::held_karp_mod::{parallel::held_karp_parallel, trees::min_one_tree
 mod parallel;
 mod trees;
 
+// TODO: Tune this maximum penalty value
+const WEIGHT_MAX_NODE: ScaledDistance = ScaledDistance(1 << 21);
+
 /// Solve the Traveling Salesman Problem using the Held-Karp algorithm.
 ///
 /// For a detailed explanation of the algorithm, see the [module-level
@@ -324,7 +327,7 @@ fn held_karp_lower_bound(
 
     let mut alpha = INITIAL_ALPHA;
 
-    let node_penalty_sum: ScaledDistance = node_penalties.iter().sum();
+    let mut node_penalty_sum: ScaledDistance = node_penalties.iter().sum();
 
     let one_tree = loop {
         let one_tree = min_one_tree(scaled_distances, edge_states, node_penalties)?;
@@ -408,10 +411,18 @@ fn held_karp_lower_bound(
         alpha *= beta;
 
         // Update penalties based on degree deviations and step size
-        // TODO: Handle overflows
+        let mut overflow = false;
+        // TODO: Handle this properly
         for (node_penalty, &d) in node_penalties.iter_mut().zip(deg.iter()) {
             let adjustment = ScaledDistance(step_size * d);
             *node_penalty += adjustment;
+            if *node_penalty > WEIGHT_MAX_NODE {
+                *node_penalty = WEIGHT_MAX_NODE;
+                overflow = true;
+            }
+        }
+        if overflow {
+            node_penalty_sum = node_penalties.iter().sum();
         }
     };
 
