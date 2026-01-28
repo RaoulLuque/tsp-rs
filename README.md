@@ -16,9 +16,23 @@ This repository contains different crates for solving the [Traveling Salesperson
 
 ## License
 
-Dual-licensed to be compatible with the Rust project.
+Except where noted (below and/or in individual files), all code in this repository is dual-licensed under either:
 
-Licensed under the [Apache License, Version 2.0](LICENSE-APACHE) or
-the [MIT license](LICENSE-MIT), at your option. This file may
-not be copied, modified, or distributed except according to those
-terms.
+- MIT License ([LICENSE-MIT](LICENSE-MIT) or [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT))
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0))
+
+at your option. This is done to be compatible with the Rust ecosystem.
+
+Some of the solvers and algorithms implemented in this repository are based on or inspired by existing works.
+Therefore, the following solvers are licensed under only the MIT License. These include the
+[Held-Karp implementation](./crates/tsp-solvers/src/held_karp_mod/) and
+the [Lin-Kernighan implementation](./crates/tsp-solvers/src/lin_kernighan_mod/).
+
+Furthermore, the instances in the `instances/tsplib_symmetric/` directory are redistributions of the original TSPLIB data and are provided here for convenience. They are not authored by the developers of this project, and the TSPLIB instances themselves are not
+covered by this project’s MIT/Apache-2.0 license. All credit for these instances goes to the original author.
+
+### Your contributions
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the
+work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any
+additional terms or conditions.

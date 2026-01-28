@@ -21,3 +21,17 @@ Add this to your `Cargo.toml`:
 [dependencies]
 tsp-solvers = "0.1"
 ```
+
+## License
+
+This crate is dual-licensed under either:
+
+- MIT License ([LICENSE-MIT](LICENSE-MIT) or [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT))
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0))
+
+at your option. This is done to be compatible with the Rust ecosystem.
+
+Some of the solvers and algorithms implemented in this crate are based on or inspired by existing works.
+Therefore, the following solvers are licensed under only the MIT License. These include the
+[Held-Karp implementation](./crates/tsp-solvers/src/held_karp_mod/) and
+the [Lin-Kernighan implementation](./crates/tsp-solvers/src/lin_kernighan_mod/).
