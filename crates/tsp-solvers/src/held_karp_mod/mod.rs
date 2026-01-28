@@ -413,6 +413,8 @@ fn held_karp_lower_bound(
         // Update penalties based on degree deviations and step size
         let mut overflow = false;
         // TODO: Handle this properly
+        // TODO: Could skip node 0 as its degree is always 2 in a 1-tree and thus the penalty never
+        // changes and isn't even used
         for (node_penalty, &d) in node_penalties.iter_mut().zip(deg.iter()) {
             let adjustment = ScaledDistance(step_size * d);
             *node_penalty += adjustment;
