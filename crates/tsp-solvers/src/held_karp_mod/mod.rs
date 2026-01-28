@@ -249,6 +249,7 @@ fn explore_node(
 
     // Explore the branch excluding the edge
     {
+        trace!("Branching on edge {:?} by excluding it", branching_edge);
         edge_states.set_data_symmetric(branching_edge.from, branching_edge.to, EdgeState::Excluded);
 
         explore_node(
@@ -275,6 +276,8 @@ fn explore_node(
     // That is, we might not be able to explore this branch, if we the edge inclusion would violate
     // the already fixed degrees / edges.
     if (fixed_degrees[branching_edge.from.0] < 2) && (fixed_degrees[branching_edge.to.0] < 2) {
+        trace!("Branching on edge {:?} by including it", branching_edge);
+
         edge_states.set_data_symmetric(branching_edge.from, branching_edge.to, EdgeState::Fixed);
         fixed_degrees[branching_edge.from.0] += 1;
         fixed_degrees[branching_edge.to.0] += 1;
@@ -354,7 +357,7 @@ fn held_karp_lower_bound(
         if one_tree_cost >= scaled_upper_bound {
             // Lower bound exceeds current upper bound, prune
             trace!(
-                "Pruning in held_karp_lower_bound due to lower bound {} >= upper bound {}",
+                "Pruning in held_karp_lower_bound due to lower bound {} > upper bound {}",
                 one_tree_cost.0, scaled_upper_bound.0
             );
             break one_tree;
