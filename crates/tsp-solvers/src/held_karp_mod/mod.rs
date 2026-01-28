@@ -1,4 +1,8 @@
 /*!
+TODO: Currently the algorithm does not guarantee optimal solutions. See burma14 instance for example.
+This is, however, also not the case with the Concorde implementation. However, we don't even always
+find a solution at least as good as Concorde's, so something seems off.
+
 This module contains an implementation of the
 [Held-Karp algorithm](https://en.wikipedia.org/wiki/Held%E2%80%93Karp_algorithm)
 (also known as the Bellman-Held-Karp algorithm) for solving the Traveling Salesperson Problem.
