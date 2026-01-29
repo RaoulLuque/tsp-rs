@@ -12,7 +12,6 @@ Dual-licensed under [MIT](../../LICENSE-MIT) or the [Apache 2.0 License](../../L
 
 [https://docs.rs/tsp-solvers](https://docs.rs/tsp-solvers)
 
-
 ### Usage
 
 Add this to your `Cargo.toml`:
