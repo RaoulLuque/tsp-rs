@@ -88,7 +88,7 @@ fn main() {
                     tsp_instance.metadata().dimension as u32,
                     concorde_tsp_instance_data,
                 );
-                let concorde_tour = concorde_rs::solver::tsp_hk(&concorde_tsp_instance).unwrap();
+                let concorde_tour = concorde_rs::solver::tsp_lk(&concorde_tsp_instance).unwrap();
                 concorde_tour.length
             };
 
