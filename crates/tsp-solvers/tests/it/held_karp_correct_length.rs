@@ -9,7 +9,7 @@ fn check_correct_length_for_held_karp(instance_path: &str) {
 
     let tsp_instance: TSPSymInstance<SquareMatrix<Distance>> =
         tsp_parser::parse_tsp_instance(instance_path).unwrap();
-    let best_tour = held_karp(&tsp_instance.distance_matrix()).unwrap();
+    let best_tour = held_karp(&tsp_instance.distance_matrix());
     let length = find_length_in_golden_file(instance_path);
 
     assert_eq!(
