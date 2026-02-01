@@ -1,26 +1,25 @@
 /*!
-TODO: Something with the assertion that the 1-trees are indeed lower bounds is wrong.
-
 This module contains an implementation of the
 [Held-Karp algorithm](https://en.wikipedia.org/wiki/Held%E2%80%93Karp_algorithm)
-(also known as the Bellman-Held-Karp algorithm) for solving the Traveling Salesperson Problem based
-on the implementation in the [Concorde TSP Solver](https://www.math.uwaterloo.ca/tsp/concorde.html).
+(also known as the Bellman-Held-Karp algorithm) for solving the Traveling Salesperson Problem. It is
+based on the implementation in the [Concorde TSP Solver](https://www.math.uwaterloo.ca/tsp/concorde.html).
 
 ## Top-level Description of the Algorithm
 
 The algorithm uses branch-and-bound and Lagrangian relaxation to successively
-tighten lower and upper bounds simultaneously until the bounds converge to an optimal solution.
+approach a feasible solution.
 
 The branch-and-bound part of the algorithm systematically explores the space of possible tours by
 branching on edges (including or excluding them from the tour) and pruning branches that cannot
 yield a better solution than the best one found so far.
 
 For finding lower bounds, the algorithm uses [1-trees](#1-trees), which are minimum spanning trees that span all nodes
-except one, plus two edges connecting the excluded node to the tree. The cost of a minimum 1-tree
+except one, plus two edges connecting the excluded node to the tree. The cost of the spanning tree
 is in this case a lower bound on the cost of a TSP tour. By introducing node penalties and adjusting
-them based on the degrees of nodes in the 1-tree, we can iteratively improve the lower bound and
+them based on the degrees of nodes in the 1-tree, we can iteratively
 nudge the 1-tree towards a valid TSP tour (the process of adjusting penalties is a form of
-[Lagrangian relaxation](#lagrangian-relaxation).
+[Lagrangian relaxation](#lagrangian-relaxation), however loosing the property of being a lower bound.
+We thus refer to the computed values as 'pseudo-lower bounds').
 
 We get upper bounds (that is, valid tours) via our 1-trees. When a 1-tree happens to be a valid tour
 (that is, all nodes have degree 2), we have found a (possible) new upper bound. We keep track of the best
@@ -33,7 +32,7 @@ that they are called by the function above them.
 - `held_karp`:  Main entry point for the Held-Karp solver. Sets up parameters and initiates the
                 branch-and-bound search.
     - `explore_node`:   Performs depth-first branch-and-bound search.
-        - `held_karp_lower_bound`:  Computes a lower bound using 1-trees and Lagrangian relaxation.
+        - `held_karp_lower_bound`:  Computes a pseudo-lower bound using 1-trees and Lagrangian relaxation.
             - `min_one_tree`:   Computes a minimum 1-tree given current edge states and node penalties.
                 - `min_spanning_tree`:  Computes a minimum spanning tree of all nodes except the
                                         first using Prim's algorithm.
@@ -44,23 +43,23 @@ that they are called by the function above them.
 ## 1-trees
 
 1-trees are minimum spanning trees that span nodes 2 to n, plus two minimum cost edges
-connecting node 1 to the tree. This is always a lower bound on the cost of a TSP tour, since
-any TSP tour is a 1-tree. To see the latter, take any valid TSP tour, remove the edges adjacent to
-the first node, and one obtains a spanning tree. Thus, the cheapest 1-tree provides a lower bound
-on the TSP tour cost.
+connecting node 1 to the tree. The cheapest 1-tree provides a lower bound for the cost of any
+TSP tour, since any TSP tour is a 1-tree. To see the latter, take any valid TSP tour, remove the
+edges adjacent to the first node, and one obtains a spanning tree. However, as this algorithm
+works with penalties, the 1-trees found might not be the cheapest with respect to the original distances,
+and thus are not technically lower bounds.
 
 ## Lagrangian Relaxation
 
 Because 1-trees by themselves might have many nodes with degree unequal to 2 (and thus are 'far
 away' from being a valid TSP tour), we introduce node penalties that adjust the costs of edges
 incident to each node. By iteratively adjusting the penalties based on the degree of nodes in the 1-tree,
-we can converge towards 1-tree closer to an actual valid tour and thus a tighter lower bound on the
-TSP tour cost.
+we can converge towards 1-trees closer to an actual valid tour.
 
 Once an actual tour is found, we can use that as an upper bound to prune the search space in the branch-and-bound
 exploration.
 
-This is considered a lagrangian relaxation ([wikipedia](https://en.wikipedia.org/wiki/Lagrangian_relaxation))
+This is considered a Lagrangian relaxation ([wikipedia](https://en.wikipedia.org/wiki/Lagrangian_relaxation))
 since instead of enforcing the degree-2 constraints strictly for our 1-trees, we instead penalize
 deviations from degree 2 via the node penalties.
 
@@ -179,8 +178,8 @@ pub enum EdgeState {
 }
 
 /// Depth-first branch-and-bound search exploring nodes recursively.
-/// Computes a lower bound at each node using Held-Karp lower bound computation and then branches
-/// on an edge from the resulting 1-tree.
+/// Computes a pseudo-lower bound at each node using Held-Karp lower bound computation and then
+/// branches on an edge from the resulting 1-tree.
 ///
 /// TODO: Summarize arguments in Held-Karp State Struct or Smth
 /// TODO: Possibly remove upper_bound as best_tour.cost already contains that information
@@ -317,7 +316,7 @@ enum LowerBoundOutput {
     Tour(UnTour),
 }
 
-/// Compute Held-Karp lower bound using 1-trees and Lagrangian relaxation
+/// Compute Held-Karp pseudo-lower bound using 1-trees and Lagrangian relaxation
 fn held_karp_lower_bound(
     distances: &SquareMatrix<Distance>,
     scaled_distances: &SquareMatrix<ScaledDistance>,
