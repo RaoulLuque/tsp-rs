@@ -46,7 +46,7 @@ macro_rules! create_held_karp_benchmarks {
 
             c.bench_function(
                 concat!("Held Karp using own implementation: ", $file_path),
-                |b| b.iter(|| held_karp(&non_symmetric_matrix).unwrap()),
+                |b| b.iter(|| held_karp(&non_symmetric_matrix)),
             );
         }
     };
@@ -76,4 +76,8 @@ criterion_group!(
     held_karp_own_bays29
 );
 
-criterion_main!(held_karp_bench_12, held_karp_bench_gr17, held_karp_bench_bays29);
+criterion_main!(
+    held_karp_bench_12,
+    held_karp_bench_gr17,
+    held_karp_bench_bays29
+);

@@ -102,13 +102,25 @@ mod trees;
 // TODO: Tune this maximum penalty value
 const WEIGHT_MAX_NODE: ScaledDistance = ScaledDistance(1 << 21);
 
+/// Struct to track the state of the Held-Karp algorithm during branch-and-bound search.
+///
+/// Only includes variables that are mutated during the search.
+struct HeldKarpState {
+    edge_states: SquareMatrix<EdgeState>,
+    node_penalties: Vec<ScaledDistance>,
+    fixed_degrees: Vec<u32>,
+    best_tour: UnTour,
+    bb_counter: usize,
+    depth: usize,
+}
+
 /// Solve the Traveling Salesman Problem using the Held-Karp algorithm.
 ///
 /// For a detailed explanation of the algorithm, see the [module-level
 /// documentation][crate::held_karp_mod].
-pub fn held_karp(distances: &SquareMatrix<Distance>) -> Option<UnTour> {
+pub fn held_karp(distances: &SquareMatrix<Distance>) -> UnTour {
     info!("Starting Held-Karp solver");
-    let mut edge_states = SquareMatrix::new(
+    let edge_states = SquareMatrix::new(
         vec![EdgeState::Available; distances.data().len()],
         distances.dimension(),
     );
@@ -122,9 +134,9 @@ pub fn held_karp(distances: &SquareMatrix<Distance>) -> Option<UnTour> {
         distances.dimension(),
     );
 
-    let mut node_penalties = initial_penalties(&scaled_distances, distances.dimension());
-    let mut fixed_degrees = vec![0u32; distances.dimension()];
-    let mut bb_counter = 0;
+    let node_penalties = initial_penalties(&scaled_distances, distances.dimension());
+    let fixed_degrees = vec![0u32; distances.dimension()];
+    let bb_counter = 0;
 
     let mut initial_upper_bound = Distance(0);
     let mut initial_tour = Vec::with_capacity(distances.dimension());
@@ -135,25 +147,23 @@ pub fn held_karp(distances: &SquareMatrix<Distance>) -> Option<UnTour> {
         });
         initial_upper_bound += distances.get_data(Node(i), Node((i + 1) % distances.dimension()));
     }
-    let mut best_tour = Some(UnTour {
+    let best_tour = UnTour {
         edges: initial_tour,
         cost: initial_upper_bound,
-    });
+    };
 
-    explore_node(
-        distances,
-        &scaled_distances,
-        &mut edge_states,
-        node_penalties.as_mut_slice(),
-        fixed_degrees.as_mut_slice(),
-        &mut initial_upper_bound,
-        &mut best_tour,
-        &mut bb_counter,
-        None,
-        0,
-    );
+    let mut held_karp_state = HeldKarpState {
+        edge_states,
+        node_penalties,
+        fixed_degrees,
+        best_tour,
+        bb_counter,
+        depth: 0,
+    };
 
-    best_tour
+    explore_node(distances, &scaled_distances, None, &mut held_karp_state);
+
+    held_karp_state.best_tour
 }
 
 const INITIAL_MAX_ITERATIONS: usize = 1_000;
@@ -178,31 +188,23 @@ pub enum EdgeState {
 /// Depth-first branch-and-bound search exploring nodes recursively.
 /// Computes a pseudo-lower bound at each node using Held-Karp lower bound computation and then
 /// branches on an edge from the resulting 1-tree.
-///
-/// TODO: Summarize arguments in Held-Karp State Struct or Smth
 /// TODO: Possibly remove upper_bound as best_tour.cost already contains that information
 fn explore_node(
     distances: &SquareMatrix<Distance>,
     scaled_distances: &SquareMatrix<ScaledDistance>,
-    edge_states: &mut SquareMatrix<EdgeState>,
-    node_penalties: &mut [ScaledDistance],
-    fixed_degrees: &mut [u32],
-    upper_bound: &mut Distance,
-    best_tour: &mut Option<UnTour>,
-    bb_counter: &mut usize,
     bb_limit: Option<usize>,
-    depth: usize,
+    state: &mut HeldKarpState,
 ) {
     // Increment the branch count
-    *bb_counter += 1;
+    state.bb_counter += 1;
 
     if let Some(limit) = bb_limit {
-        if *bb_counter >= limit {
+        if state.bb_counter >= limit {
             return;
         }
     }
 
-    let (max_iterations, beta) = if depth == 0 {
+    let (max_iterations, beta) = if state.depth == 0 {
         (INITIAL_MAX_ITERATIONS, INITIAL_BETA)
     } else {
         (MAX_ITERATIONS, BETA)
@@ -211,26 +213,25 @@ fn explore_node(
     let one_tree = match held_karp_lower_bound(
         distances,
         scaled_distances,
-        edge_states,
-        node_penalties,
-        *upper_bound,
+        &state.edge_states,
+        state.node_penalties.as_mut_slice(),
+        state.best_tour.cost,
         max_iterations,
         beta,
     ) {
         Some(LowerBoundOutput::Tour(tour)) => {
             // Found a new tour, that is, an upper bound
             debug!("Found a new best tour with cost {}", tour.cost.0);
-            *upper_bound = tour.cost;
-            *best_tour = Some(tour);
+            state.best_tour = tour;
             return;
         }
         Some(LowerBoundOutput::LowerBound(lower_bound, one_tree)) => {
             // Check if the lower bound is better than the current best cost
-            if lower_bound >= *upper_bound {
+            if lower_bound >= state.best_tour.cost {
                 // Prune this node, as we have already found a better tour than the lower bound
                 trace!(
                     "Pruning node with lower bound {} >= upper bound {}",
-                    lower_bound.0, upper_bound.0
+                    lower_bound.0, state.best_tour.cost.0
                 );
                 return;
             } else {
@@ -243,32 +244,30 @@ fn explore_node(
         }
     };
 
-    let Some(branching_edge) =
-        edge_to_branch_on(scaled_distances, edge_states, node_penalties, &one_tree)
-    else {
+    let Some(branching_edge) = edge_to_branch_on(
+        scaled_distances,
+        &state.edge_states,
+        &state.node_penalties,
+        &one_tree,
+    ) else {
         // No edge to branch on, so we prune
         return;
     };
 
+    state.depth += 1;
+
     // Explore the branch excluding the edge
     {
         trace!("Branching on edge {:?} by excluding it", branching_edge);
-        edge_states.set_data_symmetric(branching_edge.from, branching_edge.to, EdgeState::Excluded);
-
-        explore_node(
-            distances,
-            scaled_distances,
-            edge_states,
-            node_penalties,
-            fixed_degrees,
-            upper_bound,
-            best_tour,
-            bb_counter,
-            bb_limit,
-            depth + 1,
+        state.edge_states.set_data_symmetric(
+            branching_edge.from,
+            branching_edge.to,
+            EdgeState::Excluded,
         );
 
-        edge_states.set_data_symmetric(
+        explore_node(distances, scaled_distances, bb_limit, state);
+
+        state.edge_states.set_data_symmetric(
             branching_edge.from,
             branching_edge.to,
             EdgeState::Available,
@@ -278,34 +277,29 @@ fn explore_node(
     // Try exploring the branch including the edge.
     // That is, we might not be able to explore this branch, if we the edge inclusion would violate
     // the already fixed degrees / edges.
-    if (fixed_degrees[branching_edge.from.0] < 2) && (fixed_degrees[branching_edge.to.0] < 2) {
+    if (state.fixed_degrees[branching_edge.from.0] < 2)
+        && (state.fixed_degrees[branching_edge.to.0] < 2)
+    {
         trace!("Branching on edge {:?} by including it", branching_edge);
 
-        edge_states.set_data_symmetric(branching_edge.from, branching_edge.to, EdgeState::Fixed);
-        fixed_degrees[branching_edge.from.0] += 1;
-        fixed_degrees[branching_edge.to.0] += 1;
-
-        explore_node(
-            distances,
-            scaled_distances,
-            edge_states,
-            node_penalties,
-            fixed_degrees,
-            upper_bound,
-            best_tour,
-            bb_counter,
-            bb_limit,
-            depth + 1,
+        state.edge_states.set_data_symmetric(
+            branching_edge.from,
+            branching_edge.to,
+            EdgeState::Fixed,
         );
+        state.fixed_degrees[branching_edge.from.0] += 1;
+        state.fixed_degrees[branching_edge.to.0] += 1;
+
+        explore_node(distances, scaled_distances, bb_limit, state);
 
         // Backtrack
-        edge_states.set_data_symmetric(
+        state.edge_states.set_data_symmetric(
             branching_edge.from,
             branching_edge.to,
             EdgeState::Available,
         );
-        fixed_degrees[branching_edge.from.0] -= 1;
-        fixed_degrees[branching_edge.to.0] -= 1;
+        state.fixed_degrees[branching_edge.from.0] -= 1;
+        state.fixed_degrees[branching_edge.to.0] -= 1;
     }
 }
 
