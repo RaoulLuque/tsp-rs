@@ -69,7 +69,7 @@ fn main() {
                 .0..]
                 .parse::<usize>()
                 .unwrap();
-            if size > 50 {
+            if size > 55 {
                 continue;
             }
 
