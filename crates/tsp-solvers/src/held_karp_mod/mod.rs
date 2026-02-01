@@ -164,10 +164,8 @@ const INITIAL_ALPHA: f64 = 2.0;
 const INITIAL_BETA: f64 = 0.99;
 const BETA: f64 = 0.9;
 
-#[repr(i8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// State of an edge in the branch-and-bound search.
-/// TODO: Check if repr(i8) is necessary
 pub enum EdgeState {
     /// Edge is available for inclusion or exclusion, i.e. not yet decided.
     Available = 1,
