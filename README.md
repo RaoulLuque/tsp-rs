@@ -12,7 +12,8 @@ This repository contains different crates for solving the [Traveling Salesperson
   by David L. Applegate, Robert E. Bixby, Vasek Chvatal, and William J. Cook.
   This book provides an in-depth treatment of various TSP algorithms.
 - [Concorde TSP Solver](https://www.math.uwaterloo.ca/tsp/concorde.html): The Concorde TSP solver
-  is a well-known implementation of TSP algorithms.
+  is a well-known implementation of TSP algorithms. Some of the algorithms in this repository are
+  inspired by or based on techniques used in Concorde with the authors' permission.
 
 ## License
 
@@ -26,7 +27,8 @@ at your option. This is done to be compatible with the Rust ecosystem.
 Some of the solvers and algorithms implemented in this repository are based on or inspired by existing works.
 Therefore, the following solvers are licensed under only the MIT License. These include the
 [Held-Karp implementation](./crates/tsp-solvers/src/held_karp_mod/) and
-the [Lin-Kernighan implementation](./crates/tsp-solvers/src/lin_kernighan_mod/).
+the [Lin-Kernighan implementation](./crates/tsp-solvers/src/lin_kernighan_mod/). Specific credits and
+references for their implementations can be found in their respective module documentation.
 
 Furthermore, the instances in the `instances/tsplib_symmetric/` directory are redistributions of the original TSPLIB data and are provided here for convenience. They are not authored by the developers of this project, and the TSPLIB instances themselves are not
 covered by this project’s MIT/Apache-2.0 license. All credit for these instances goes to the original author.

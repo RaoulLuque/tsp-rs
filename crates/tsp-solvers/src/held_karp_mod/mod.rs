@@ -1,11 +1,10 @@
 /*!
-TODO: Currently the algorithm does not guarantee optimal solutions. See burma14 instance for example.
-This is, however, also not the case with the Concorde implementation. However, we don't even always
-find a solution at least as good as Concorde's, so something seems off.
+TODO: Something with the assertion that the 1-trees are indeed lower bounds is wrong.
 
 This module contains an implementation of the
 [Held-Karp algorithm](https://en.wikipedia.org/wiki/Held%E2%80%93Karp_algorithm)
-(also known as the Bellman-Held-Karp algorithm) for solving the Traveling Salesperson Problem.
+(also known as the Bellman-Held-Karp algorithm) for solving the Traveling Salesperson Problem based
+on the implementation in the [Concorde TSP Solver](https://www.math.uwaterloo.ca/tsp/concorde.html).
 
 ## Top-level Description of the Algorithm
 
@@ -73,13 +72,16 @@ by forcibly including or excluding edges.
 
 ## References and Credit
 
-- [Concorde TSP Solver](https://www.math.uwaterloo.ca/tsp/concorde.html): The Concorde TSP solver
+- [Concorde]: The Concorde TSP solver
   is a well-known implementation of TSP algorithms, including the Held-Karp algorithm.
   The implementation in this module took inspiration from techniques used in Concorde's approach to the Held-Karp algorithm.
+  In particular, the [min_spanning_tree](trees::min_spanning_tree) implementation of Prim's algorithm
+  is adapted from Concorde's implementation, which was written by Sanjeeb Dash.
 - [The Traveling Salesman Problem: A Computational Study](https://www.degruyterbrill.com/document/doi/10.1515/9781400841103/html?lang=en)
   by David L. Applegate, Robert E. Bixby, Vasek Chvatal, and William J. Cook.
   This book provides an in-depth treatment of various TSP algorithms, including the Held-Karp algorithm.
 
+[Concorde]: https://www.math.uwaterloo.ca/tsp/concorde.html
 */
 
 use std::u32;
