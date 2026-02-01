@@ -158,7 +158,7 @@ fn explore_node_new_thread(
             *threads_spawned.lock().unwrap() += 1;
             thread::scope(|s| {
                 // Explore the branch excluding the edge
-                let thread_handle = {
+                let _ = {
                     let mut edge_states_clone = edge_states.clone();
                     let mut node_penalties_clone = node_penalties.to_vec();
                     let mut fixed_degrees_clone = fixed_degrees.to_vec();
@@ -318,6 +318,7 @@ fn explore_node_new_thread(
 /// on an edge from the resulting 1-tree.
 ///
 /// TODO: Summarize arguments in Held-Karp State Struct or Smth
+#[allow(unused)]
 fn explore_node_parallel(
     distances: &SquareMatrix<Distance>,
     scaled_distances: &SquareMatrix<ScaledDistance>,

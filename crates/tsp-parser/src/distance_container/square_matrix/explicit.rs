@@ -1,7 +1,7 @@
 use memchr::memchr;
 use tsp_core::instance::{
     distance::Distance,
-    matrix::{SquareMatrix, TriangularMatrix},
+    matrix::SquareMatrix,
     node::Node,
 };
 

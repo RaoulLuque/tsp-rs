@@ -1,5 +1,4 @@
 use memchr::memchr;
-use memmap2::Mmap;
 use thiserror::Error;
 use tsp_core::{
     instance::InstanceMetadata,

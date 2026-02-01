@@ -6,7 +6,6 @@
 /// Distance values are required to be non-negative integers. Computations are expected to be
 /// carried out in double precision arithmetic, i.e. `f64` in Rust.
 use memchr::memchr;
-use memmap2::Mmap;
 use tsp_core::{
     instance::InstanceMetadata,
     tsp_lib_spec::{EdgeWeightType, TSPDataKeyword},

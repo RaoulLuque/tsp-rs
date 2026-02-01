@@ -1,10 +1,4 @@
-use std::ops::Add;
-
-use tsp_core::instance::{
-    distance::Distance,
-    matrix::{SquareMatrix, TriangularMatrix},
-};
-use tsp_solvers::{held_karp, held_karp_mod::held_karp_parallel};
+use tsp_core::instance::{distance::Distance, matrix::TriangularMatrix};
 
 fn main() {
     env_logger::init();

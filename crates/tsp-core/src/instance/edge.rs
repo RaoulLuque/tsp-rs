@@ -1,4 +1,4 @@
-use crate::instance::{distance::Distance, node::Node};
+use crate::instance::node::Node;
 
 /// An undirected edge between two nodes.
 #[derive(Debug, Clone, Copy)]
