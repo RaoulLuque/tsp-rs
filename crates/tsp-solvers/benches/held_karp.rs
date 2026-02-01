@@ -54,16 +54,26 @@ macro_rules! create_held_karp_benchmarks {
 
 create_held_karp_benchmarks!("tsp_rust/12.tsp", held_karp_concorde_12, held_karp_own_12);
 create_held_karp_benchmarks!(
-    "tsplib_symmetric/berlin52.tsp",
-    held_karp_concorde_berlin52,
-    held_karp_own_berlin52
+    "tsplib_symmetric/gr17.tsp",
+    held_karp_concorde_gr17,
+    held_karp_own_gr17
+);
+create_held_karp_benchmarks!(
+    "tsplib_symmetric/bays29.tsp",
+    held_karp_concorde_bays29,
+    held_karp_own_bays29
 );
 
 criterion_group!(held_karp_bench_12, held_karp_concorde_12, held_karp_own_12);
 criterion_group!(
-    name = held_karp_bench_berlin52;
-    config = Criterion::default().sample_size(10);
-    targets = held_karp_concorde_berlin52, held_karp_own_berlin52
+    held_karp_bench_gr17,
+    held_karp_concorde_gr17,
+    held_karp_own_gr17
+);
+criterion_group!(
+    held_karp_bench_bays29,
+    held_karp_concorde_bays29,
+    held_karp_own_bays29
 );
 
-criterion_main!(held_karp_bench_12, held_karp_bench_berlin52);
+criterion_main!(held_karp_bench_12, held_karp_bench_gr17, held_karp_bench_bays29);
