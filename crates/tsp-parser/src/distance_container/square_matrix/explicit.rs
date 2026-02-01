@@ -1,9 +1,5 @@
 use memchr::memchr;
-use tsp_core::instance::{
-    distance::Distance,
-    matrix::SquareMatrix,
-    node::Node,
-};
+use tsp_core::instance::{distance::Distance, matrix::SquareMatrix, node::Node};
 
 use crate::{FileContent, data_section::loop_over_lines};
 

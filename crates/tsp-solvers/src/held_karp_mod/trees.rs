@@ -1,7 +1,7 @@
 use tsp_core::instance::{
     distance::ScaledDistance,
     edge::UnEdge,
-    matrix::{SquareMatrix, MatrixViewZeroRemoved},
+    matrix::{MatrixViewZeroRemoved, SquareMatrix},
     node::Node,
 };
 
@@ -85,7 +85,7 @@ pub fn min_one_tree(
 /// variation of Prim's algorithm to abide the edge states.
 ///
 /// Returns a vector of edges representing the minimum spanning tree.
-/// 
+///
 /// This implementation is an adaption of the min_spanning_tree implementation in Concorde, which
 /// was written by Sanjeeb Dash.
 fn min_spanning_tree(
