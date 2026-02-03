@@ -18,7 +18,10 @@ use crate::held_karp_mod::{
 };
 
 const INITIAL_MAX_ITERATIONS: usize = 1_000;
-const MAX_ITERATIONS: usize = 10;
+// TODO: Possibly increase this even further. Possible downside: Longer runtimes on easy instances
+// where we don't branch. Possible upside: We find better tours on hard instances as the threads
+// have more time to improve the lower bound before we branch.
+const MAX_ITERATIONS: usize = 500;
 
 const INITIAL_BETA: f64 = 0.99;
 const BETA: f64 = 0.9;
@@ -29,7 +32,7 @@ const BETA: f64 = 0.9;
 ///
 /// For a detailed explanation of the algorithm, see the [module-level
 /// documentation][crate::held_karp_mod].
-pub fn held_karp_parallel(distances: &SquareMatrix<Distance>) -> Option<UnTour> {
+pub fn held_karp_parallel(distances: &SquareMatrix<Distance>) -> UnTour {
     info!("Starting Held-Karp parallel solver for instance");
     let mut edge_states = SquareMatrix::new(
         vec![EdgeState::Available; distances.data().len()],
@@ -78,7 +81,7 @@ pub fn held_karp_parallel(distances: &SquareMatrix<Distance>) -> Option<UnTour> 
         threads_spawned,
     );
 
-    best_tour.lock().unwrap().clone().into()
+    best_tour.lock().unwrap().clone()
 }
 
 /// TODO: Adapt documentation
