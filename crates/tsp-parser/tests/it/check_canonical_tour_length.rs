@@ -23,37 +23,37 @@ fn check_against_canonical_tour_length(instance_path: &str) {
                 .expect("Golden file should contain a valid distance"),
         );
 
-        let tsp_instance_sym =
+        let tsp_instance_triangular =
             tsp_parser::parse_tsp_instance::<TriangularMatrix<Distance>>(instance_path)
                 .expect("Failed to parse TSP instance");
-        let tsp_instance_matrix =
+        let tsp_instance_square =
             tsp_parser::parse_tsp_instance::<SquareMatrix<Distance>>(instance_path)
                 .expect("Failed to parse TSP instance");
 
-        let mut len_sym = Distance(0);
-        let mut len_matrix = Distance(0);
+        let mut len_triangular = Distance(0);
+        let mut len_square = Distance(0);
 
-        let dimension = tsp_instance_sym.metadata().dimension;
+        let dimension = tsp_instance_triangular.metadata().dimension;
 
         for i in 0..dimension {
             let from = i;
             let to = (i + 1) % dimension;
-            len_sym = len_sym
-                + tsp_instance_sym
+            len_triangular = len_triangular
+                + tsp_instance_triangular
                     .distance_matrix()
                     .get_data(from.into(), to.into());
-            len_matrix = len_matrix
-                + tsp_instance_matrix
+            len_square = len_square
+                + tsp_instance_square
                     .distance_matrix()
                     .get_data(from.into(), to.into());
         }
         assert_eq!(
-            len_sym, golden_length,
-            "Symmetric matrix length does not match golden length"
+            len_triangular, golden_length,
+            "Triangular matrix length does not match golden length"
         );
         assert_eq!(
-            len_matrix, golden_length,
-            "Matrix length does not match golden length"
+            len_square, golden_length,
+            "Square matrix length does not match golden length"
         );
     }
 }

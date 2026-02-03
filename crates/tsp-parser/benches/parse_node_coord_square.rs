@@ -24,8 +24,8 @@ macro_rules! create_parse_benchmark_square {
     };
 }
 
-create_parse_benchmark_square!("tsplib_symmetric/a280.tsp", parse_a280_into_square, a280);
-create_parse_benchmark_square!("tsplib_symmetric/d198.tsp", parse_d198_into_square, d198);
-create_parse_benchmark_square!("tsplib_symmetric/d493.tsp", parse_d493_into_square, d493);
+create_parse_benchmark_square!("tsplib_square/a280.tsp", parse_a280_into_square, a280);
+create_parse_benchmark_square!("tsplib_square/d198.tsp", parse_d198_into_square, d198);
+create_parse_benchmark_square!("tsplib_square/d493.tsp", parse_d493_into_square, d493);
 
 criterion_main!(a280, d198, d493);

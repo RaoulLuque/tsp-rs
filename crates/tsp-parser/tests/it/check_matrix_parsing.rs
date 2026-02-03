@@ -16,10 +16,11 @@ fn check_input_file_against_golden_file(instance_path: &str) {
     let golden_distance_data = parse_golden_file_square_matrix(instance_path).expect("");
 
     let parsed_triangular_matrix: TSPSymInstance<TriangularMatrix<Distance>> =
-        tsp_parser::parse_tsp_instance(instance_path).expect("Symmetric parsing should succeed");
+        tsp_parser::parse_tsp_instance(instance_path)
+            .expect("Triangular matrix parsing should succeed");
     let parsed_square_matrix: TSPSymInstance<SquareMatrix<Distance>> =
         tsp_parser::parse_tsp_instance(instance_path).expect(
-            "Matrix parsing should
+            "Square matrix parsing should
         succeed",
         );
 
@@ -50,8 +51,8 @@ fn check_input_file_against_golden_file(instance_path: &str) {
                 parsed_triangular_matrix
                     .distance_matrix()
                     .get_data(Node(row), Node(col)),
-                "Distance matrix mismatch at position ({}, {}) with values {:?} (symmetric) vs \
-                 {:?} (matrix)",
+                "Distance matrix mismatch at position ({}, {}) with values {:?} (triangular) vs \
+                 {:?} (square)",
                 row,
                 col,
                 parsed_triangular_matrix

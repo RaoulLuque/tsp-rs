@@ -6,7 +6,7 @@ use tsp_core::instance::{
 };
 use tsp_macros::test_fn_on_all_instances;
 
-fn parse_instance_symmetric(path: &str) {
+fn parse_instance_triangular(path: &str) {
     let parsing_result = std::panic::catch_unwind(|| {
         tsp_parser::parse_tsp_instance::<TriangularMatrix<Distance>>(path.to_owned())
     });
@@ -17,7 +17,7 @@ fn parse_instance_symmetric(path: &str) {
     }
 }
 
-fn parse_instance_non_symmetric(path: &str) {
+fn parse_instance_square(path: &str) {
     let parsing_result = std::panic::catch_unwind(|| {
         tsp_parser::parse_tsp_instance::<SquareMatrix<Distance>>(path.to_owned())
     });
@@ -50,7 +50,7 @@ fn handle_error(err: Box<dyn Any + Send>) {
     }
 }
 
-test_fn_on_all_instances!(parse_instance_symmetric, short_symmetric, 0, 40);
-test_fn_on_all_instances!(parse_instance_non_symmetric, short_non_symmetric, 0, 40);
-test_fn_on_all_instances!(parse_instance_symmetric, symmetric, 41, 10000);
-test_fn_on_all_instances!(parse_instance_non_symmetric, non_symmetric, 41, 10000);
+test_fn_on_all_instances!(parse_instance_triangular, short_triangular, 0, 40);
+test_fn_on_all_instances!(parse_instance_square, short_square, 0, 40);
+test_fn_on_all_instances!(parse_instance_triangular, triangular, 41, 10000);
+test_fn_on_all_instances!(parse_instance_square, square, 41, 10000);
