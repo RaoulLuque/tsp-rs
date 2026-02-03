@@ -74,7 +74,7 @@ by forcibly including or excluding edges.
 - [Concorde]: The Concorde TSP solver
   is a well-known implementation of TSP algorithms, including the Held-Karp algorithm.
   The implementation in this module took inspiration from techniques used in Concorde's approach to the Held-Karp algorithm.
-  In particular, the [min_spanning_tree](trees::min_spanning_tree) implementation of Prim's algorithm
+  In particular, the Minimum Spanning Tree implementation of Prim's algorithm
   is adapted from Concorde's implementation, which was written by Sanjeeb Dash.
 - [The Traveling Salesman Problem: A Computational Study](https://www.degruyterbrill.com/document/doi/10.1515/9781400841103/html?lang=en)
   by David L. Applegate, Robert E. Bixby, Vasek Chvatal, and William J. Cook.

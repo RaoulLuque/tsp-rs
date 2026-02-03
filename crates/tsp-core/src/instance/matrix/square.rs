@@ -141,7 +141,7 @@ impl<Data: Display + Ord + Copy> Display for SquareMatrix<Data> {
     }
 }
 
-/// View of an [EdgeDataMatrix] with the zero-eth row removed.
+/// View of an [SquareMatrix] with the zero-eth row removed.
 ///
 /// I.e. a (n-1) x n matrix where row 0 corresponds to node 1, row 1 to node 2, ..., row n-1 to node
 /// n. Data is borrowed from the original matrix, i.e. its lifetime is tied to that of the original

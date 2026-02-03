@@ -103,8 +103,7 @@ impl<Data: Copy> TriangularMatrix<Data> {
         self.data[index]
     }
 
-    /// Convert to a non-symmetric [crate::instance::edge::data::EdgeDataMatrix] by duplicating the
-    /// data.
+    /// Convert to a [SquareMatrix] by filling in the missing entries.
     pub fn to_edge_data_matrix(&self) -> SquareMatrix<Data> {
         let dimension = self.dimension;
         let mut data = vec![self.data[0].clone(); dimension * dimension];
