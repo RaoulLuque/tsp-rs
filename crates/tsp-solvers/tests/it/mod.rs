@@ -6,7 +6,7 @@ use tsp_solvers::held_karp;
 mod held_karp_correct_length;
 
 #[test]
-fn test_held_karp_on_12() {
+fn test_held_karp_on_12_short() {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()

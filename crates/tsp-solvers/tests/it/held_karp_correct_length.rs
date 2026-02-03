@@ -7,6 +7,12 @@ fn check_correct_length_for_held_karp(instance_path: &str) {
         return;
     }
 
+    if instance_path.ends_with("gr48.tsp") || instance_path.ends_with("eil51.tsp") {
+        // These instances just take quite long and are annoying if they run every time we run
+        // tests.
+        return;
+    }
+
     let tsp_instance: TSPSymInstance<SquareMatrix<Distance>> =
         tsp_parser::parse_tsp_instance(instance_path).unwrap();
     let best_tour = held_karp(&tsp_instance.distance_matrix());

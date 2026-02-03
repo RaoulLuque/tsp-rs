@@ -181,7 +181,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_min_spanning_tree_simple_tree() {
+    fn test_min_spanning_tree_simple_tree_short() {
         let dimension = 11;
         let distance_matrix = SquareMatrix::new_from_distance_function(dimension, |from, to| {
             if from.0 + 1 == to.0 || from.0 == to.0 + 1 {
@@ -216,7 +216,7 @@ mod tests {
     }
 
     #[test]
-    fn test_min_spanning_tree_excluded_infeasible() {
+    fn test_min_spanning_tree_excluded_infeasible_short() {
         let distance_matrix = SquareMatrix::new_from_dimension_with_value(10, ScaledDistance(0));
         let penalties = vec![ScaledDistance(0); 10];
         let edge_states = SquareMatrix::new_from_dimension_with_value(
@@ -231,7 +231,7 @@ mod tests {
     }
 
     #[test]
-    fn test_min_spanning_tree_infeasible_node_isolated() {
+    fn test_min_spanning_tree_infeasible_node_isolated_short() {
         let dimension = 6;
         let distance_matrix =
             SquareMatrix::new_from_dimension_with_value(dimension, ScaledDistance(0));
@@ -258,7 +258,7 @@ mod tests {
     }
 
     #[test]
-    fn test_min_spanning_tree_fixed() {
+    fn test_min_spanning_tree_fixed_short() {
         let dimension = 6;
         let distance_matrix =
             SquareMatrix::new_from_dimension_with_value(dimension, ScaledDistance(0));
