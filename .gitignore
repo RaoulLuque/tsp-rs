@@ -1,6 +1,7 @@
 /target
 /.vscode
 /foreign_solvers
+/.venv
 
 # Cargo
 .cargo/config.toml
