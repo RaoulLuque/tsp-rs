@@ -1,6 +1,6 @@
 # TSP Solvers
 
-This crate provides implementations of various algorithms to solve the Traveling Salesman Problem (TSP).
+This crate provides implementations of various algorithms to solve the Traveling Salesperson Problem (TSP).
 The different algorithms are implemented as separate modules within this crate.
 
 [![Build status](https://github.com/RaoulLuque/tsp-rs/workflows/ci/badge.svg)](https://github.com/RaoulLuque/tsp-rs/actions)

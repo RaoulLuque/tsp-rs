@@ -26,7 +26,8 @@ const MAX_ITERATIONS: usize = 500;
 const INITIAL_BETA: f64 = 0.99;
 const BETA: f64 = 0.9;
 
-/// Solve the Traveling Salesman Problem using a parallel implementation of the Held-Karp algorithm.
+/// Solve the Traveling Salesperson Problem using a parallel implementation of the Held-Karp
+/// algorithm.
 ///
 /// For a detailed explanation of the algorithm, see the [module-level
 /// documentation][crate::held_karp_mod].

@@ -114,7 +114,7 @@ struct HeldKarpState<Tour> {
     depth: usize,
 }
 
-/// Solve the Traveling Salesman Problem using the Held-Karp algorithm.
+/// Solve the Traveling Salesperson Problem using the Held-Karp algorithm.
 ///
 /// For a detailed explanation of the algorithm, see the [module-level
 /// documentation][crate::held_karp_mod].

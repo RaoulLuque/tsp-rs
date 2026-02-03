@@ -1,6 +1,6 @@
 # tsp-rs
 
-This crate is the entry point for tsp-rs, a suite of crates for solving the Traveling Salesman 
+This crate is the entry point for tsp-rs, a suite of crates for solving the Traveling Salesperson
 Problem (TSP) written in Rust.
 
 [![Build status](https://github.com/RaoulLuque/tsp-rs/workflows/ci/badge.svg)](https://github.com/RaoulLuque/tsp-rs/actions)
