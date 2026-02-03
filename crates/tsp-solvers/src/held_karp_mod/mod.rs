@@ -188,7 +188,6 @@ pub enum EdgeState {
 /// Depth-first branch-and-bound search exploring nodes recursively.
 /// Computes a pseudo-lower bound at each node using Held-Karp lower bound computation and then
 /// branches on an edge from the resulting 1-tree.
-/// TODO: Possibly remove upper_bound as best_tour.cost already contains that information
 fn explore_node(
     distances: &SquareMatrix<Distance>,
     scaled_distances: &SquareMatrix<ScaledDistance>,
@@ -308,6 +307,16 @@ enum LowerBoundOutput {
     Tour(UnTour),
 }
 
+pub(crate) trait UpperBoundProvider {
+    fn get_upper_bound(&self) -> Distance;
+}
+
+impl UpperBoundProvider for Distance {
+    fn get_upper_bound(&self) -> Distance {
+        *self
+    }
+}
+
 /// Compute Held-Karp pseudo-lower bound using 1-trees and Lagrangian relaxation
 fn held_karp_lower_bound(
     distances: &SquareMatrix<Distance>,
@@ -412,10 +421,10 @@ fn held_karp_lower_bound(
 
         // Update penalties based on degree deviations and step size
         let mut overflow = false;
-        // TODO: Handle this properly
-        // TODO: Could skip node 0 as its degree is always 2 in a 1-tree and thus the penalty never
-        // changes and isn't even used
-        for (node_penalty, &d) in node_penalties.iter_mut().zip(deg.iter()) {
+
+        // Skip node 0, as its degree is always 2 in a 1-tree
+        let node_penalties_deg_iter = node_penalties.iter_mut().zip(deg.iter()).skip(1);
+        for (node_penalty, &d) in node_penalties_deg_iter {
             let adjustment = ScaledDistance(step_size * d);
             *node_penalty += adjustment;
             if *node_penalty > WEIGHT_MAX_NODE {
