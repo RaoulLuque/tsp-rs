@@ -18,7 +18,7 @@ macro_rules! create_held_karp_parallel_benchmarks {
                 parse_tsp_instance::<SquareMatrix<Distance>>(path.to_str().unwrap()).unwrap();
 
             c.bench_function(
-                concat!("Held Karp using own implementation: ", $file_path),
+                concat!("Held Karp Parallel: ", $file_path),
                 |b| b.iter(|| held_karp_parallel(&tsp_instance.distance_matrix())),
             );
         }
@@ -28,13 +28,16 @@ macro_rules! create_held_karp_parallel_benchmarks {
 create_held_karp_parallel_benchmarks!("tsp_rust/12.tsp", held_karp_own_12);
 create_held_karp_parallel_benchmarks!("tsplib_symmetric/gr17.tsp", held_karp_own_gr17);
 create_held_karp_parallel_benchmarks!("tsplib_symmetric/bays29.tsp", held_karp_own_bays29);
+create_held_karp_parallel_benchmarks!("tsplib_symmetric/berlin52.tsp", held_karp_own_berlin52);
 
 criterion_group!(held_karp_bench_12, held_karp_own_12);
 criterion_group!(held_karp_bench_gr17, held_karp_own_gr17);
 criterion_group!(held_karp_bench_bays29, held_karp_own_bays29);
+criterion_group!(held_karp_bench_berlin52, held_karp_own_berlin52);
 
 criterion_main!(
     held_karp_bench_12,
     held_karp_bench_gr17,
-    held_karp_bench_bays29
+    held_karp_bench_bays29,
+    held_karp_bench_berlin52
 );

@@ -13,9 +13,15 @@ use tsp_core::instance::{
 };
 
 use crate::held_karp_mod::{
-    BETA, EdgeState, INITIAL_ALPHA, INITIAL_BETA, INITIAL_MAX_ITERATIONS, MAX_ITERATIONS,
-    edge_to_branch_on, initial_penalties, min_one_tree,
+    EdgeState, LowerBoundOutput, UpperBoundProvider, edge_to_branch_on, held_karp_lower_bound,
+    initial_penalties,
 };
+
+const INITIAL_MAX_ITERATIONS: usize = 1_000;
+const MAX_ITERATIONS: usize = 10;
+
+const INITIAL_BETA: f64 = 0.99;
+const BETA: f64 = 0.9;
 
 ///  TODO: Adapt documentation
 ///
@@ -59,7 +65,7 @@ pub fn held_karp_parallel(distances: &SquareMatrix<Distance>) -> Option<UnTour> 
 
     let threads_spawned = Arc::new(Mutex::new(1usize));
 
-    explore_node_new_thread(
+    explore_node_parallel(
         distances,
         &scaled_distances,
         &mut edge_states,
@@ -82,7 +88,7 @@ pub fn held_karp_parallel(distances: &SquareMatrix<Distance>) -> Option<UnTour> 
 /// on an edge from the resulting 1-tree.
 ///
 /// TODO: Summarize arguments in Held-Karp State Struct or Smth
-fn explore_node_new_thread(
+fn explore_node_parallel(
     distances: &SquareMatrix<Distance>,
     scaled_distances: &SquareMatrix<ScaledDistance>,
     edge_states: &mut SquareMatrix<EdgeState>,
@@ -109,7 +115,7 @@ fn explore_node_new_thread(
         (MAX_ITERATIONS, BETA)
     };
 
-    let one_tree = match held_karp_lower_bound_parallel(
+    let one_tree = match held_karp_lower_bound(
         distances,
         scaled_distances,
         edge_states,
@@ -152,6 +158,12 @@ fn explore_node_new_thread(
         return;
     };
 
+    // We distinguish the following cases:
+    // 1. We can explore both branches (including and excluding the edge) - outermost if
+    //
+    //      1.true  We check, whether we can spawn a new thread (i.e., whether a core is available)
+    //
+    //      2.false Since we only explore one branch, we explore it in the current thread
     if (fixed_degrees[branching_edge.from.0] < 2) && (fixed_degrees[branching_edge.to.0] < 2) {
         if *threads_spawned.lock().unwrap() <= 8 {
             // We can spawn a new thread which explores the branch excluding the edge
@@ -173,7 +185,7 @@ fn explore_node_new_thread(
                             EdgeState::Excluded,
                         );
 
-                        explore_node_new_thread(
+                        explore_node_parallel(
                             distances,
                             scaled_distances,
                             &mut edge_states_clone,
@@ -201,7 +213,7 @@ fn explore_node_new_thread(
                 fixed_degrees[branching_edge.from.0] += 1;
                 fixed_degrees[branching_edge.to.0] += 1;
 
-                explore_node_new_thread(
+                explore_node_parallel(
                     distances,
                     scaled_distances,
                     edge_states,
@@ -235,7 +247,7 @@ fn explore_node_new_thread(
                     EdgeState::Excluded,
                 );
 
-                explore_node_new_thread(
+                explore_node_parallel(
                     distances,
                     scaled_distances,
                     edge_states,
@@ -263,7 +275,7 @@ fn explore_node_new_thread(
                 fixed_degrees[branching_edge.from.0] += 1;
                 fixed_degrees[branching_edge.to.0] += 1;
 
-                explore_node_new_thread(
+                explore_node_parallel(
                     distances,
                     scaled_distances,
                     edge_states,
@@ -295,7 +307,7 @@ fn explore_node_new_thread(
                 EdgeState::Excluded,
             );
 
-            explore_node_new_thread(
+            explore_node_parallel(
                 distances,
                 scaled_distances,
                 edge_states,
@@ -311,252 +323,8 @@ fn explore_node_new_thread(
     }
 }
 
-/// TODO: Adapt documentation
-///
-/// Depth-first branch-and-bound search exploring nodes recursively.
-/// Computes a lower bound at each node using Held-Karp lower bound computation and then branches
-/// on an edge from the resulting 1-tree.
-///
-/// TODO: Summarize arguments in Held-Karp State Struct or Smth
-#[allow(unused)]
-fn explore_node_parallel(
-    distances: &SquareMatrix<Distance>,
-    scaled_distances: &SquareMatrix<ScaledDistance>,
-    edge_states: &mut SquareMatrix<EdgeState>,
-    node_penalties: &mut [ScaledDistance],
-    fixed_degrees: &mut [u32],
-    best_tour: Arc<Mutex<UnTour>>,
-    bb_counter: &mut usize,
-    bb_limit: Option<usize>,
-    depth: usize,
-) {
-    // Increment the branch count
-    *bb_counter += 1;
-
-    if let Some(limit) = bb_limit {
-        if *bb_counter >= limit {
-            return;
-        }
+impl UpperBoundProvider for Arc<Mutex<UnTour>> {
+    fn get_upper_bound(&self) -> Distance {
+        self.lock().unwrap().cost
     }
-
-    let (max_iterations, beta) = if depth == 0 {
-        (INITIAL_MAX_ITERATIONS, INITIAL_BETA)
-    } else {
-        (MAX_ITERATIONS, BETA)
-    };
-
-    let current_upper_bound = best_tour.lock().unwrap().cost;
-    let one_tree = match held_karp_lower_bound_parallel(
-        distances,
-        scaled_distances,
-        edge_states,
-        node_penalties,
-        // Possibly pass Arc<Mutex<UnTour>> instead of copying the best tour cost each time
-        best_tour.clone(),
-        max_iterations,
-        beta,
-    ) {
-        Some(LowerBoundOutput::Tour(tour)) => {
-            // Found a new tour, that is, an upper bound
-            debug!("Found a new best tour with cost {}", tour.cost.0);
-            *best_tour.lock().unwrap() = tour;
-            return;
-        }
-        Some(LowerBoundOutput::LowerBound(lower_bound, one_tree)) => {
-            // Check if the lower bound is better than the current best cost
-            if lower_bound >= current_upper_bound {
-                // Prune this node, as we have already found a better tour than the lower bound
-                trace!(
-                    "Pruning node with lower bound {} >= upper bound {}",
-                    lower_bound.0, current_upper_bound.0
-                );
-                return;
-            } else {
-                one_tree
-            }
-        }
-        None => {
-            // Infeasible node, prune
-            return;
-        }
-    };
-
-    let Some(branching_edge) =
-        edge_to_branch_on(scaled_distances, edge_states, node_penalties, &one_tree)
-    else {
-        // No edge to branch on, so we prune
-        return;
-    };
-
-    // Explore the branch excluding the edge
-    {
-        edge_states.set_data_symmetric(branching_edge.from, branching_edge.to, EdgeState::Excluded);
-
-        explore_node_parallel(
-            distances,
-            scaled_distances,
-            edge_states,
-            node_penalties,
-            fixed_degrees,
-            best_tour.clone(),
-            bb_counter,
-            bb_limit,
-            depth + 1,
-        );
-
-        edge_states.set_data_symmetric(
-            branching_edge.from,
-            branching_edge.to,
-            EdgeState::Available,
-        );
-    }
-
-    // Try exploring the branch including the edge.
-    // That is, we might not be able to explore this branch, if we the edge inclusion would violate
-    // the already fixed degrees / edges.
-    if (fixed_degrees[branching_edge.from.0] < 2) && (fixed_degrees[branching_edge.to.0] < 2) {
-        edge_states.set_data_symmetric(branching_edge.from, branching_edge.to, EdgeState::Fixed);
-        fixed_degrees[branching_edge.from.0] += 1;
-        fixed_degrees[branching_edge.to.0] += 1;
-
-        explore_node_parallel(
-            distances,
-            scaled_distances,
-            edge_states,
-            node_penalties,
-            fixed_degrees,
-            best_tour,
-            bb_counter,
-            bb_limit,
-            depth + 1,
-        );
-
-        // Backtrack
-        edge_states.set_data_symmetric(
-            branching_edge.from,
-            branching_edge.to,
-            EdgeState::Available,
-        );
-        fixed_degrees[branching_edge.from.0] -= 1;
-        fixed_degrees[branching_edge.to.0] -= 1;
-    }
-}
-
-enum LowerBoundOutput {
-    LowerBound(Distance, Vec<UnEdge>),
-    Tour(UnTour),
-}
-
-/// Compute Held-Karp lower bound using 1-trees and Lagrangian relaxation
-fn held_karp_lower_bound_parallel(
-    distances: &SquareMatrix<Distance>,
-    scaled_distances: &SquareMatrix<ScaledDistance>,
-    edge_states: &SquareMatrix<EdgeState>,
-    node_penalties: &mut [ScaledDistance],
-    best_tour: Arc<Mutex<UnTour>>,
-    max_iterations: usize,
-    beta: f64,
-) -> Option<LowerBoundOutput> {
-    // Tracks the current best lower bound found
-    let mut scaled_best_lower_bound = ScaledDistance::MIN;
-
-    let mut iter_count = 0;
-
-    let mut alpha = INITIAL_ALPHA;
-
-    let node_penalty_sum: ScaledDistance = node_penalties.iter().sum();
-
-    let one_tree = loop {
-        let one_tree = min_one_tree(scaled_distances, edge_states, node_penalties)?;
-
-        let scaled_upper_bound = ScaledDistance::from_distance(best_tour.lock().unwrap().cost);
-
-        // Compute the cost of the 1-tree with penalties. This is simultaneously the value of
-        // the lagrangian relaxation and thus a lower bound (possibly an upper bound too, if it is a
-        // tour).
-        let one_tree_cost = {
-            let mut base_cost = 2 * node_penalty_sum;
-
-            for edge in &one_tree {
-                base_cost += scaled_distances.get_data(edge.from, edge.to);
-                base_cost -= node_penalties[edge.from.0];
-                base_cost -= node_penalties[edge.to.0];
-            }
-
-            base_cost
-        };
-
-        if one_tree_cost > scaled_best_lower_bound {
-            scaled_best_lower_bound = one_tree_cost;
-        }
-        if one_tree_cost >= scaled_upper_bound {
-            // Lower bound exceeds current upper bound, prune
-            trace!(
-                "Pruning in held_karp_lower_bound due to lower bound {} >= upper bound {}",
-                one_tree_cost.0, scaled_upper_bound.0
-            );
-            break one_tree;
-        }
-
-        // Next we check the degrees of the nodes in the 1-tree
-        // Deg[node] can be interpreted as follows:
-        //  Deg[node] < 0: Node has degree > 2 -> we need to decrease its penalty. This makes edges
-        //                 incident to node more expensive, that is, less likely to be selected.
-        //  Deg[node] > 0: Node has degree < 2 -> we need to increase its penalty. This makes edges
-        //                 incident to node cheaper, that is, more likely to be selected.
-        //  Deg[node] == 0: Node has degree == 2 -> no change to penalty.
-        let mut deg = vec![2i32; distances.dimension()];
-
-        for edge in &one_tree {
-            deg[edge.from.0] -= 1;
-            deg[edge.to.0] -= 1;
-        }
-
-        let square_sum = deg.iter().map(|&d| d * d).sum::<i32>();
-
-        if square_sum == 0 {
-            // Found a tour
-            let cost: Distance = one_tree
-                .iter()
-                .map(|edge| distances.get_data(edge.from, edge.to))
-                .sum();
-
-            return Some(LowerBoundOutput::Tour(UnTour {
-                edges: one_tree,
-                cost,
-            }));
-        }
-
-        // We have not found a tour yet, so we want to update the penalties
-        iter_count += 1;
-
-        if iter_count >= max_iterations {
-            // Reached maximum iterations
-            break one_tree;
-        }
-
-        // TODO: Research on subgradient method for non-smooth optimization to find out more about
-        // this
-        let step_size = (alpha
-            * ((scaled_upper_bound.0 - one_tree_cost.0) as f64 / (square_sum as f64)))
-            as i32;
-
-        if step_size <= 3 {
-            // Step size is very small (<= 3 in scaled), we probably won't be making much progress
-            break one_tree;
-        }
-
-        alpha *= beta;
-
-        // Update penalties based on degree deviations and step size
-        // TODO: Handle overflows
-        for (node_penalty, &d) in node_penalties.iter_mut().zip(deg.iter()) {
-            let adjustment = ScaledDistance(step_size * d);
-            *node_penalty += adjustment;
-        }
-    };
-
-    let best_lower_bound = scaled_best_lower_bound.to_distance_rounded_up();
-
-    Some(LowerBoundOutput::LowerBound(best_lower_bound, one_tree))
 }

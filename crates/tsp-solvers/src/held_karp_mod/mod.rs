@@ -323,12 +323,10 @@ fn held_karp_lower_bound(
     scaled_distances: &SquareMatrix<ScaledDistance>,
     edge_states: &SquareMatrix<EdgeState>,
     node_penalties: &mut [ScaledDistance],
-    upper_bound: Distance,
+    upper_bound_provider: impl UpperBoundProvider,
     max_iterations: usize,
     beta: f64,
 ) -> Option<LowerBoundOutput> {
-    let scaled_upper_bound = ScaledDistance::from_distance(upper_bound);
-
     // Tracks the current best lower bound found
     let mut scaled_best_lower_bound = ScaledDistance::MIN;
 
@@ -339,6 +337,11 @@ fn held_karp_lower_bound(
     let mut node_penalty_sum: ScaledDistance = node_penalties.iter().sum();
 
     let one_tree = loop {
+        // We only create the variable here, to be able to reuse this function in parallel settings
+        // where a new upper_bound might be found between runs of this loop.
+        let scaled_upper_bound =
+            ScaledDistance::from_distance(upper_bound_provider.get_upper_bound());
+
         let one_tree = min_one_tree(scaled_distances, edge_states, node_penalties)?;
 
         // Compute the cost of the 1-tree with penalties. This is simultaneously the value of
