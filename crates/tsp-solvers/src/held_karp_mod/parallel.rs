@@ -13,8 +13,8 @@ use tsp_core::instance::{
 };
 
 use crate::held_karp_mod::{
-    EdgeState, LowerBoundOutput, UpperBoundProvider, edge_to_branch_on, held_karp_lower_bound,
-    initial_penalties,
+    EdgeState, HeldKarpState, LowerBoundOutput, UpperBoundProvider, edge_to_branch_on,
+    held_karp_lower_bound, initial_penalties,
 };
 
 const INITIAL_MAX_ITERATIONS: usize = 1_000;
@@ -38,8 +38,8 @@ const BETA: f64 = 0.9;
 /// This should speed up the solving process on multi-core systems, especially for hard instances
 /// where a lot of branching is required and possibly even lead to better tours being found.
 pub fn held_karp_parallel(distances: &SquareMatrix<Distance>) -> UnTour {
-    info!("Starting Held-Karp parallel solver for instance");
-    let mut edge_states = SquareMatrix::new(
+    info!("Starting Held-Karp parallel solver");
+    let edge_states = SquareMatrix::new(
         vec![EdgeState::Available; distances.data().len()],
         distances.dimension(),
     );
@@ -53,9 +53,9 @@ pub fn held_karp_parallel(distances: &SquareMatrix<Distance>) -> UnTour {
         distances.dimension(),
     );
 
-    let mut node_penalties = initial_penalties(&scaled_distances, distances.dimension());
-    let mut fixed_degrees = vec![0u32; distances.dimension()];
-    let mut bb_counter = 0;
+    let node_penalties = initial_penalties(&scaled_distances, distances.dimension());
+    let fixed_degrees = vec![0u32; distances.dimension()];
+    let bb_counter = 0;
 
     let mut initial_upper_bound = Distance(0);
     let mut initial_tour = Vec::with_capacity(distances.dimension());
@@ -73,20 +73,24 @@ pub fn held_karp_parallel(distances: &SquareMatrix<Distance>) -> UnTour {
 
     let threads_spawned = Arc::new(Mutex::new(1usize));
 
+    let mut state = HeldKarpState {
+        edge_states,
+        node_penalties,
+        fixed_degrees,
+        best_tour: best_tour.clone(),
+        bb_counter,
+        depth: 0,
+    };
+
     explore_node_parallel(
         distances,
         &scaled_distances,
-        &mut edge_states,
-        node_penalties.as_mut_slice(),
-        fixed_degrees.as_mut_slice(),
-        best_tour.clone(),
-        &mut bb_counter,
+        &mut state,
         None,
-        0,
         threads_spawned,
     );
 
-    best_tour.lock().unwrap().clone()
+    best_tour.clone().lock().unwrap().clone()
 }
 
 /// Same as [`explore_node`][crate::held_karp_mod::explore_node] but parallelized.
@@ -96,25 +100,20 @@ pub fn held_karp_parallel(distances: &SquareMatrix<Distance>) -> UnTour {
 fn explore_node_parallel(
     distances: &SquareMatrix<Distance>,
     scaled_distances: &SquareMatrix<ScaledDistance>,
-    edge_states: &mut SquareMatrix<EdgeState>,
-    node_penalties: &mut [ScaledDistance],
-    fixed_degrees: &mut [u32],
-    best_tour: Arc<Mutex<UnTour>>,
-    bb_counter: &mut usize,
+    state: &mut HeldKarpState<Arc<Mutex<UnTour>>>,
     bb_limit: Option<usize>,
-    depth: usize,
     threads_spawned: Arc<Mutex<usize>>,
 ) {
     // Increment the branch count
-    *bb_counter += 1;
+    state.bb_counter += 1;
 
     if let Some(limit) = bb_limit {
-        if *bb_counter >= limit {
+        if state.bb_counter >= limit {
             return;
         }
     }
 
-    let (max_iterations, beta) = if depth == 0 {
+    let (max_iterations, beta) = if state.depth == 0 {
         (INITIAL_MAX_ITERATIONS, INITIAL_BETA)
     } else {
         (MAX_ITERATIONS, BETA)
@@ -123,21 +122,21 @@ fn explore_node_parallel(
     let one_tree = match held_karp_lower_bound(
         distances,
         scaled_distances,
-        edge_states,
-        node_penalties,
+        &state.edge_states,
+        &mut state.node_penalties,
         // Possibly pass Arc<Mutex<UnTour>> instead of copying the best tour cost each time
-        best_tour.clone(),
+        state.best_tour.clone(),
         max_iterations,
         beta,
     ) {
         Some(LowerBoundOutput::Tour(tour)) => {
             // Found a new tour, that is, an upper bound
             debug!("Found a new best tour with cost {}", tour.cost.0);
-            *best_tour.lock().unwrap() = tour;
+            *state.best_tour.lock().unwrap() = tour;
             return;
         }
         Some(LowerBoundOutput::LowerBound(lower_bound, one_tree)) => {
-            let current_upper_bound = best_tour.lock().unwrap().cost;
+            let current_upper_bound = state.best_tour.lock().unwrap().cost;
             // Check if the lower bound is better than the current best cost
             if lower_bound >= current_upper_bound {
                 // Prune this node, as we have already found a better tour than the lower bound
@@ -156,12 +155,17 @@ fn explore_node_parallel(
         }
     };
 
-    let Some(branching_edge) =
-        edge_to_branch_on(scaled_distances, edge_states, node_penalties, &one_tree)
-    else {
+    let Some(branching_edge) = edge_to_branch_on(
+        scaled_distances,
+        &state.edge_states,
+        &state.node_penalties,
+        &one_tree,
+    ) else {
         // No edge to branch on, so we prune
         return;
     };
+
+    state.depth += 1;
 
     // We distinguish the following cases:
     // 1. We can explore both branches (including and excluding the edge) - outermost if
@@ -169,22 +173,20 @@ fn explore_node_parallel(
     //      1.true  We check, whether we can spawn a new thread (i.e., whether a core is available)
     //
     //      2.false Since we only explore one branch, we explore it in the current thread
-    if (fixed_degrees[branching_edge.from.0] < 2) && (fixed_degrees[branching_edge.to.0] < 2) {
+    if (state.fixed_degrees[branching_edge.from.0] < 2)
+        && (state.fixed_degrees[branching_edge.to.0] < 2)
+    {
         if *threads_spawned.lock().unwrap() <= 8 {
             // We can spawn a new thread which explores the branch excluding the edge
             *threads_spawned.lock().unwrap() += 1;
             thread::scope(|s| {
                 // Explore the branch excluding the edge
                 let _ = {
-                    let mut edge_states_clone = edge_states.clone();
-                    let mut node_penalties_clone = node_penalties.to_vec();
-                    let mut fixed_degrees_clone = fixed_degrees.to_vec();
-                    let best_tour_handle = best_tour.clone();
-                    let mut bb_counter_clone = bb_counter.clone();
+                    let mut state_cloned = state.clone_custom();
                     let threads_spawned_handle = threads_spawned.clone();
 
                     let thread_handle = s.spawn(move || {
-                        edge_states_clone.set_data_symmetric(
+                        state_cloned.edge_states.set_data_symmetric(
                             branching_edge.from,
                             branching_edge.to,
                             EdgeState::Excluded,
@@ -193,13 +195,8 @@ fn explore_node_parallel(
                         explore_node_parallel(
                             distances,
                             scaled_distances,
-                            &mut edge_states_clone,
-                            &mut node_penalties_clone,
-                            &mut fixed_degrees_clone,
-                            best_tour_handle,
-                            &mut bb_counter_clone,
+                            &mut state_cloned,
                             bb_limit,
-                            depth + 1,
                             threads_spawned_handle,
                         );
                     });
@@ -210,35 +207,30 @@ fn explore_node_parallel(
                 // Try exploring the branch including the edge.
                 // That is, we might not be able to explore this branch, if we the edge inclusion
                 // would violate the already fixed degrees / edges.
-                edge_states.set_data_symmetric(
+                state.edge_states.set_data_symmetric(
                     branching_edge.from,
                     branching_edge.to,
                     EdgeState::Fixed,
                 );
-                fixed_degrees[branching_edge.from.0] += 1;
-                fixed_degrees[branching_edge.to.0] += 1;
+                state.fixed_degrees[branching_edge.from.0] += 1;
+                state.fixed_degrees[branching_edge.to.0] += 1;
 
                 explore_node_parallel(
                     distances,
                     scaled_distances,
-                    edge_states,
-                    node_penalties,
-                    fixed_degrees,
-                    best_tour,
-                    bb_counter,
+                    state,
                     bb_limit,
-                    depth + 1,
                     threads_spawned.clone(),
                 );
 
                 // Backtrack
-                edge_states.set_data_symmetric(
+                state.edge_states.set_data_symmetric(
                     branching_edge.from,
                     branching_edge.to,
                     EdgeState::Available,
                 );
-                fixed_degrees[branching_edge.from.0] -= 1;
-                fixed_degrees[branching_edge.to.0] -= 1;
+                state.fixed_degrees[branching_edge.from.0] -= 1;
+                state.fixed_degrees[branching_edge.to.0] -= 1;
             });
 
             // Decrement the thread count
@@ -246,7 +238,7 @@ fn explore_node_parallel(
         } else {
             // We cannot spawn a new thread, so we explore both branches in the current thread
             {
-                edge_states.set_data_symmetric(
+                state.edge_states.set_data_symmetric(
                     branching_edge.from,
                     branching_edge.to,
                     EdgeState::Excluded,
@@ -255,13 +247,8 @@ fn explore_node_parallel(
                 explore_node_parallel(
                     distances,
                     scaled_distances,
-                    edge_states,
-                    node_penalties,
-                    fixed_degrees,
-                    best_tour.clone(),
-                    bb_counter,
+                    state,
                     bb_limit,
-                    depth + 1,
                     threads_spawned.clone(),
                 );
             }
@@ -269,44 +256,39 @@ fn explore_node_parallel(
             // Try exploring the branch including the edge.
             // That is, we might not be able to explore this branch, if we the edge inclusion would
             // violate the already fixed degrees / edges.
-            if (fixed_degrees[branching_edge.from.0] < 2)
-                && (fixed_degrees[branching_edge.to.0] < 2)
+            if (state.fixed_degrees[branching_edge.from.0] < 2)
+                && (state.fixed_degrees[branching_edge.to.0] < 2)
             {
-                edge_states.set_data_symmetric(
+                state.edge_states.set_data_symmetric(
                     branching_edge.from,
                     branching_edge.to,
                     EdgeState::Fixed,
                 );
-                fixed_degrees[branching_edge.from.0] += 1;
-                fixed_degrees[branching_edge.to.0] += 1;
+                state.fixed_degrees[branching_edge.from.0] += 1;
+                state.fixed_degrees[branching_edge.to.0] += 1;
 
                 explore_node_parallel(
                     distances,
                     scaled_distances,
-                    edge_states,
-                    node_penalties,
-                    fixed_degrees,
-                    best_tour,
-                    bb_counter,
+                    state,
                     bb_limit,
-                    depth + 1,
                     threads_spawned.clone(),
                 );
 
                 // Backtrack
-                edge_states.set_data_symmetric(
+                state.edge_states.set_data_symmetric(
                     branching_edge.from,
                     branching_edge.to,
                     EdgeState::Available,
                 );
-                fixed_degrees[branching_edge.from.0] -= 1;
-                fixed_degrees[branching_edge.to.0] -= 1;
+                state.fixed_degrees[branching_edge.from.0] -= 1;
+                state.fixed_degrees[branching_edge.to.0] -= 1;
             }
         }
     } else {
         // We can only explore the branch excluding the edge.
         {
-            edge_states.set_data_symmetric(
+            state.edge_states.set_data_symmetric(
                 branching_edge.from,
                 branching_edge.to,
                 EdgeState::Excluded,
@@ -315,15 +297,25 @@ fn explore_node_parallel(
             explore_node_parallel(
                 distances,
                 scaled_distances,
-                edge_states,
-                node_penalties,
-                fixed_degrees,
-                best_tour.clone(),
-                bb_counter,
+                state,
                 bb_limit,
-                depth + 1,
                 threads_spawned,
             );
+        }
+    }
+}
+
+impl HeldKarpState<Arc<Mutex<UnTour>>> {
+    /// Clone the HeldKarpState, creating new copies of the internal data structures, except for
+    /// the best_tour which is shared.
+    fn clone_custom(&self) -> Self {
+        HeldKarpState {
+            edge_states: self.edge_states.clone(),
+            node_penalties: self.node_penalties.to_vec(),
+            fixed_degrees: self.fixed_degrees.to_vec(),
+            best_tour: self.best_tour.clone(),
+            bb_counter: self.bb_counter,
+            depth: self.depth,
         }
     }
 }

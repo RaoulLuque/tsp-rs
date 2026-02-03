@@ -105,11 +105,11 @@ const WEIGHT_MAX_NODE: ScaledDistance = ScaledDistance(1 << 21);
 /// Struct to track the state of the Held-Karp algorithm during branch-and-bound search.
 ///
 /// Only includes variables that are mutated during the search.
-struct HeldKarpState {
+struct HeldKarpState<Tour> {
     edge_states: SquareMatrix<EdgeState>,
     node_penalties: Vec<ScaledDistance>,
     fixed_degrees: Vec<u32>,
-    best_tour: UnTour,
+    best_tour: Tour,
     bb_counter: usize,
     depth: usize,
 }
@@ -192,7 +192,7 @@ fn explore_node(
     distances: &SquareMatrix<Distance>,
     scaled_distances: &SquareMatrix<ScaledDistance>,
     bb_limit: Option<usize>,
-    state: &mut HeldKarpState,
+    state: &mut HeldKarpState<UnTour>,
 ) {
     // Increment the branch count
     state.bb_counter += 1;
