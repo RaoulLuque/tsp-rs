@@ -70,7 +70,7 @@ jobs:
       - name: Build caching
         uses: Swatinem/rust-cache@v2
 
+      # We only run miri on tests that include 'short' in their name to keep ci times.
       - name: Run miri
         run: |
-          MIRIFLAGS=-Zmiri-disable-isolation cargo miri nextest run --features _miri --package tsp-core --package tsp-rs --package tsp-solvers
-          MIRIFLAGS=-Zmiri-disable-isolation cargo miri nextest run --features _miri -E 'test(short)' --package "tsp-parser"
+          MIRIFLAGS=-Zmiri-disable-isolation cargo miri nextest run --features _miri -E 'test(short)'
