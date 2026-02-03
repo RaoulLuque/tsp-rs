@@ -26,12 +26,17 @@ const MAX_ITERATIONS: usize = 500;
 const INITIAL_BETA: f64 = 0.99;
 const BETA: f64 = 0.9;
 
-///  TODO: Adapt documentation
-///
-///  Solve the Traveling Salesman Problem using the Held-Karp algorithm.
+/// Solve the Traveling Salesman Problem using a parallel implementation of the Held-Karp algorithm.
 ///
 /// For a detailed explanation of the algorithm, see the [module-level
 /// documentation][crate::held_karp_mod].
+/// This implementation is the same as the sequential one
+/// [`held_karp`][crate::held_karp_mod::held_karp], except that when branching, if both branches can
+/// be explored, one branch is explored in a new thread (if a core is available) while the other
+/// branch is explored in the current thread.
+///
+/// This should speed up the solving process on multi-core systems, especially for hard instances
+/// where a lot of branching is required and possibly even lead to better tours being found.
 pub fn held_karp_parallel(distances: &SquareMatrix<Distance>) -> UnTour {
     info!("Starting Held-Karp parallel solver for instance");
     let mut edge_states = SquareMatrix::new(
@@ -84,13 +89,10 @@ pub fn held_karp_parallel(distances: &SquareMatrix<Distance>) -> UnTour {
     best_tour.lock().unwrap().clone()
 }
 
-/// TODO: Adapt documentation
+/// Same as [`explore_node`][crate::held_karp_mod::explore_node] but parallelized.
 ///
-/// Depth-first branch-and-bound search exploring nodes recursively.
-/// Computes a lower bound at each node using Held-Karp lower bound computation and then branches
-/// on an edge from the resulting 1-tree.
-///
-/// TODO: Summarize arguments in Held-Karp State Struct or Smth
+/// That is, if both branches can be explored, one branch is explored in a new thread (if a core is
+/// available) while the other branch is explored in the current thread.
 fn explore_node_parallel(
     distances: &SquareMatrix<Distance>,
     scaled_distances: &SquareMatrix<ScaledDistance>,
