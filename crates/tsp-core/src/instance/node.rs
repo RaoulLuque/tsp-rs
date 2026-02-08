@@ -1,5 +1,6 @@
 use std::ops::{Add, Sub};
 
+/// Newtype for a node in a TSP instance.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Node(pub usize);
 

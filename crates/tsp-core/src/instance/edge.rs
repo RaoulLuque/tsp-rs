@@ -1,13 +1,19 @@
 use crate::instance::node::Node;
 
 /// An undirected edge between two nodes.
+///
+/// Derives [PartialEq], [Eq], [PartialOrd], and [Ord] such that the edge (A, B) is considered
+/// equal to (B, A), and ordering is based on the smaller node first.
 #[derive(Debug, Clone, Copy)]
 pub struct UnEdge {
+    /// The first node of the edge.
     pub from: Node,
+    /// The second node of the edge.
     pub to: Node,
 }
 
 impl UnEdge {
+    /// Creates a new undirected edge between two nodes.
     pub fn new(from: Node, to: Node) -> Self {
         Self { from, to }
     }
