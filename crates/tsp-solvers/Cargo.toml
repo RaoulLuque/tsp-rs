@@ -16,6 +16,7 @@ authors.workspace = true
 tsp-core = {workspace = true}
 
 log = {workspace = true}
+rand = {workspace = true}
 
 [dev-dependencies]
 criterion = {workspace = true}
